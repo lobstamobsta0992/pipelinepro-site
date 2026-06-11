@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PipelinePro | Interactive Sales One-Pager & Pitch Deck</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0F172A',
+                            slate: '#1E293B',
+                            accent: '#EA580C',
+                            accentHover: '#C2410C',
+                            lightBg: '#F8FAFC',
+                            muted: '#64748B'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-brand-lightBg text-brand-dark font-sans min-h-screen flex flex-col justify-between">
+
+    <!-- Header Navigation -->
+    <header class="bg-white border-b border-slate-100 py-5">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 flex justify-between items-center">
+            <a href="/" class="flex items-center space-x-2">
+                <svg class="w-8 h-8 text-brand-accent" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 16V10C4 8.89543 4.89543 8 6 8H11V6C11 4.89543 11.8954 4 13 4H18C19.1046 4 20 4.89543 20 6V12C20 13.1046 19.1046 14 18 14H13V16C13 17.1046 12.1046 18 11 18H6C4.89543 18 4 17.1046 4 16Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+                </svg>
+                <span class="text-xl font-black tracking-tight text-brand-dark">Pipeline<span class="text-brand-accent">Pro</span></span>
+            </a>
+            <div class="flex items-center space-x-4">
+                <a href="/" class="text-sm font-bold text-brand-slate hover:text-brand-accent transition-colors">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> Back to Main Site
+                </a>
+                <a href="/#lead-form-section" class="bg-brand-accent hover:bg-brand-accentHover text-white text-xs font-extrabold px-4 py-2.5 rounded-lg shadow-sm transition-all">
+                    Schedule Onboarding Call
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 py-10 flex-grow w-full">
+        <div class="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
+            
+            <!-- Pitch Title Banner -->
+            <div class="bg-brand-dark text-white p-8 sm:p-12 relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10">
+                    <div class="absolute inset-0" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
+                </div>
+                <div class="relative z-10 space-y-4 max-w-3xl">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-brand-accent/20 text-brand-accent border border-brand-accent/30 tracking-wide uppercase">
+                        Interactive Pitch Deck & One-Pager
+                    </span>
+                    <h1 class="text-3xl sm:text-5xl font-black leading-none tracking-tight">
+                        The Predictable Appointment Engine for Home-Service Businesses
+                    </h1>
+                    <p class="text-slate-300 text-base sm:text-lg">
+                        We don't sell leads. We put booked, pre-qualified appointments directly onto your calendar on autopilot.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Pitch Navigation Tabs -->
+            <div class="border-b border-slate-100 bg-slate-50 flex overflow-x-auto">
+                <button onclick="switchTab('problem')" id="tab-problem" class="tab-btn px-6 py-4 font-bold text-sm border-b-2 border-brand-accent text-brand-accent whitespace-nowrap transition-all flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>1. The Pain</span>
+                </button>
+                <button onclick="switchTab('solution')" id="tab-solution" class="tab-btn px-6 py-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-brand-slate whitespace-nowrap transition-all flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>2. Our Solution</span>
+                </button>
+                <button onclick="switchTab('pricing-tiers')" id="tab-pricing-tiers" class="tab-btn px-6 py-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-brand-slate whitespace-nowrap transition-all flex items-center space-x-2">
+                    <i class="fa-solid fa-tags"></i>
+                    <span>3. Pricing & Services</span>
+                </button>
+                <button onclick="switchTab('guarantee')" id="tab-guarantee" class="tab-btn px-6 py-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-brand-slate whitespace-nowrap transition-all flex items-center space-x-2">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>4. Risk Guarantee</span>
+                </button>
+                <button onclick="switchTab('math')" id="tab-math" class="tab-btn px-6 py-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-brand-slate whitespace-nowrap transition-all flex items-center space-x-2">
+                    <i class="fa-solid fa-calculator"></i>
+                    <span>5. ROI Math</span>
+                </button>
+            </div>
+
+            <!-- Tab Content Area -->
+            <div class="p-8 sm:p-12">
+
+                <!-- 1. The Pain -->
+                <div id="content-problem" class="tab-content space-y-8">
+                    <div class="space-y-4">
+                        <h2 class="text-3xl font-black tracking-tight text-slate-900">Why Modern Lead Gen is Broken</h2>
+                        <p class="text-slate-600 leading-relaxed text-lg">
+                            Most plumbing, electrical, and roofing business owners are incredible at their trade but lose thousands of dollars on marketing. Here are the two primary bottlenecks they encounter daily:
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                        <div class="bg-rose-50 border border-rose-100 rounded-2xl p-6 space-y-4">
+                            <div class="w-10 h-10 bg-rose-100 text-rose-600 rounded-lg flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-circle-xmark"></i>
+                            </div>
+                            <h4 class="text-xl font-bold text-rose-950">1. The Shared Lead Trap</h4>
+                            <p class="text-rose-900 text-sm leading-relaxed">
+                                Lead sites like Angie's List, Yelp, and HomeAdvisor sell the **exact same lead** to 5 or more local contractors at the same moment. It forces you to battle on price, call the client 20 times just to get a busy signal, and burn out your technicians chasing flaky prospects.
+                            </p>
+                        </div>
+
+                        <div class="bg-rose-50 border border-rose-100 rounded-2xl p-6 space-y-4">
+                            <div class="w-10 h-10 bg-rose-100 text-rose-600 rounded-lg flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-circle-xmark"></i>
+                            </div>
+                            <h4 class="text-xl font-bold text-rose-950">2. The Wasted Retainer Agencies</h4>
+                            <p class="text-rose-900 text-sm leading-relaxed">
+                                Traditional ad agencies charge you a hefty flat monthly retainer fee *plus* ask you to spend thousands in monthly Google or Facebook ad spend. They generate plenty of "clicks" or "form fills," but you are too busy in the field to call them back immediately, causing leads to freeze over and die.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. The Solution -->
+                <div id="content-solution" class="tab-content hidden space-y-8">
+                    <div class="space-y-4">
+                        <h2 class="text-3xl font-black tracking-tight text-slate-900">The Solution: PipelinePro Appointment Engine</h2>
+                        <p class="text-slate-600 leading-relaxed text-lg">
+                            We don't sell raw phone numbers or email addresses. **We sell booked appointments.** We build your custom automated outreach campaigns, handle the list sourcing, and qualify incoming leads using conversational AI before scheduling them directly in your calendar.
+                        </p>
+                    </div>
+
+                    <!-- Workflow Step diagram -->
+                    <div class="border-t border-b border-slate-100 py-8 my-8">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest text-center mb-8">Our Automated Booking Workflow</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-6 text-center">
+                            <div class="space-y-2">
+                                <div class="w-12 h-12 bg-slate-900 text-brand-accent rounded-full flex items-center justify-center mx-auto text-lg font-black shadow">
+                                    1
+                                </div>
+                                <h5 class="font-bold text-sm">Sourcing Target Leads</h5>
+                                <p class="text-slate-500 text-xs">We build a hyper-local database of high-revenue prospects.</p>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="w-12 h-12 bg-slate-900 text-brand-accent rounded-full flex items-center justify-center mx-auto text-lg font-black shadow">
+                                    2
+                                </div>
+                                <h5 class="font-bold text-sm">Multi-Channel Pitch</h5>
+                                <p class="text-slate-500 text-xs">We send personalized, friendly SMS & email campaigns.</p>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="w-12 h-12 bg-slate-900 text-brand-accent rounded-full flex items-center justify-center mx-auto text-lg font-black shadow">
+                                    3
+                                </div>
+                                <h5 class="font-bold text-sm">Conversational AI</h5>
+                                <p class="text-slate-500 text-xs">Our AI pre-qualifies scope of work, area, and budget.</p>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="w-12 h-12 bg-brand-accent text-white rounded-full flex items-center justify-center mx-auto text-lg font-black shadow animate-pulse">
+                                    4
+                                </div>
+                                <h5 class="font-bold text-sm">Calendar Booked</h5>
+                                <p class="text-slate-500 text-xs">The job is scheduled. You show up, quote, and close.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Side by side comparison -->
+                    <div class="space-y-4">
+                        <h3 class="text-xl font-bold">Why Trade Pros Love Us</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="flex items-start space-x-3 text-slate-600 text-sm">
+                                <i class="fa-solid fa-circle-check text-brand-accent mt-1"></i>
+                                <span>**100% Exclusive Bookings**: No other local contractor will call this lead.</span>
+                            </div>
+                            <div class="flex items-start space-x-3 text-slate-600 text-sm">
+                                <i class="fa-solid fa-circle-check text-brand-accent mt-1"></i>
+                                <span>**No Chase Required**: Bookings show up inside your Google/Outlook calendar.</span>
+                            </div>
+                            <div class="flex items-start space-x-3 text-slate-600 text-sm">
+                                <i class="fa-solid fa-circle-check text-brand-accent mt-1"></i>
+                                <span>**60-Sec Lead Response**: AI qualifies and schedules replies instantly, 24/7.</span>
+                            </div>
+                            <div class="flex items-start space-x-3 text-slate-600 text-sm">
+                                <i class="fa-solid fa-circle-check text-brand-accent mt-1"></i>
+                                <span>**Zero Risk Retainer**: If we do not hit your appointment quota, we refund you.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Pricing & Services -->
+                <div id="content-pricing-tiers" class="tab-content hidden space-y-8">
+                    <div class="space-y-4">
+                        <h2 class="text-3xl font-black tracking-tight text-slate-900">Service Tiers & Flat Pricing</h2>
+                        <p class="text-slate-600 leading-relaxed text-lg">
+                            No monthly ad spend, no complex agency setup. Simply choose the appointment tier that fits your crew's target capacity:
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                        <!-- Starter -->
+                        <div class="bg-slate-50 border border-slate-100 rounded-2xl p-6 flex flex-col justify-between">
+                            <div class="space-y-4">
+                                <h4 class="text-lg font-bold text-slate-900">Starter Pipeline</h4>
+                                <div class="text-3xl font-black">$1,500<span class="text-xs text-slate-500 font-semibold">/mo</span></div>
+                                <span class="inline-block bg-brand-accent/10 text-brand-accent text-xs font-bold px-2.5 py-1 rounded-full text-center">
+                                    Guaranteed: 10 Booked Jobs
+                                </span>
+                                <hr class="border-slate-200">
+                                <ul class="space-y-2 text-xs text-slate-600">
+                                    <li><i class="fa-solid fa-check text-brand-accent mr-1"></i> Sourcing up to 500 prospects</li>
+                                    <li><i class="fa-solid fa-check text-brand-accent mr-1"></i> 1 Active campaign sequence</li>
+                                    <li><i class="fa-solid fa-check text-brand-accent mr-1"></i> Live Calendar Booking integration</li>
+                                    <li><i class="fa-solid fa-check text-brand-accent mr-1"></i> Google/Outlook Calendar sync</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Growth -->
+                        <div class="bg-brand-dark border-2 border-brand-accent text-white rounded-2xl p-6 flex flex-col justify-between shadow-lg relative">
+                            <div class="absolute -top-3 right-4 bg-brand-accent text-white text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Most Popular</div>
+                            <div class="space-y-4">
+                                <h4 class="text-lg font-bold">Growth Pipeline</h4>
+                                <div class="text-3xl font-black text-brand-accent">$2,250<span class="text-xs text-slate-400 font-semibold">/mo</span></div>
+                                <span class="inline-block bg-brand-accent text-white text-xs font-bold px-2.5 py-1 rounded-full text-center">
+                                    Guaranteed: 18 Booked Jobs
+                                </span>
+                                <hr class="border-slate-800">
+                                <ul class="space-y-2 text-xs text-slate-300">
+                                    <li><i class="fa-solid fa-check text-brand-accent mr-1"></i> Sourcing up to 1,200 prospects</li>
+                                    <li><i class="fa-solid fa-check text-brand-accent mr-1"></i> Custom multi-channel outreach</li>
+                                    <li><i class="fa-solid fa-check text-brand-accent mr-1"></i> **24/7 AI Booking Assistant**</li>
+                                    <li><i class="fa-solid fa-check text-brand-accent mr-1"></i> Auto booking for no-shows</li>
+                                    <li><i class="fa-solid fa-check text-brand-accent mr-1"></i> CRM Setup & Lead pipeline sync</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Premium -->
+                        <div class="bg-slate-50 border border-slate-100 rounded-2xl p-6 flex flex-col justify-between">
+                            <div class="space-y-4">
+                                <h4 class="text-lg font-bold text-slate-900">Pro Pipeline</h4>
+                                <div class="text-3xl font-black">$3,000<span class="text-xs text-slate-500 font-semibold">/mo</span></div>
+                                <span class="inline-block bg-brand-accent/10 text-brand-accent text-xs font-bold px-2.5 py-1 rounded-full text-center">
+                                    Guaranteed: 25+ Booked Jobs
+                                </span>
+                                <hr class="border-slate-200">
+                                <ul class="space-y-2 text-xs text-slate-600">
+                                    <li><i class="fa-solid fa-check text-brand-accent mr-1"></i> Sourcing unlimited database</li>
+                                    <li><i class="fa-solid fa-check text-brand-accent mr-1"></i> Priority booking routing</li>
+                                    <li><i class="fa-solid fa-check text-brand-accent mr-1"></i> **Reactivate old cold leads**</li>
+                                    <li><i class="fa-solid fa-check text-brand-accent mr-1"></i> Instant inbound web capture</li>
+                                    <li><i class="fa-solid fa-check text-brand-accent mr-1"></i> Dedicated Client Account Manager</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Risk Guarantee -->
+                <div id="content-guarantee" class="tab-content hidden space-y-8">
+                    <div class="space-y-4">
+                        <h2 class="text-3xl font-black tracking-tight text-slate-900">The Risk-Free Retainer Guarantee</h2>
+                        <p class="text-slate-600 leading-relaxed text-lg">
+                            Traditional marketing agencies demand their flat retainer fees regardless of whether they deliver results, leaving you holding the bag. We believe in alignment and performance.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-100 p-8 rounded-2xl flex flex-col sm:flex-row items-center gap-6">
+                        <div class="w-16 h-16 bg-brand-accent/10 text-brand-accent rounded-2xl flex items-center justify-center text-4xl shrink-0">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div class="space-y-2">
+                            <h4 class="text-xl font-bold text-slate-900">Our Pro-Rata Quota Promise:</h4>
+                            <p class="text-slate-600 text-sm leading-relaxed">
+                                If we fail to deliver your guaranteed number of booked, qualified appointments on your calendar in any given month, **we will refund you a pro-rated amount for every single missed appointment**, or work for free until we hit the target. No questions asked. No marketing excuses. Just results.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. ROI Math -->
+                <div id="content-math" class="tab-content hidden space-y-8">
+                    <div class="space-y-4">
+                        <h2 class="text-3xl font-black tracking-tight text-slate-900">The Economics of a Growth Pipeline</h2>
+                        <p class="text-slate-600 leading-relaxed text-lg">
+                            Let’s review the actual numbers for a typical contractor partner running our Growth tier system:
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 text-center">
+                        <div class="bg-slate-50 border border-slate-100 rounded-xl p-6">
+                            <div class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Guaranteed Appointments</div>
+                            <div class="text-4xl font-black text-brand-dark">18</div>
+                            <p class="text-slate-500 text-xs mt-2">Qualified, booked bookings</p>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-100 rounded-xl p-6">
+                            <div class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Avg. Close Rate (33%)</div>
+                            <div class="text-4xl font-black text-brand-dark">6</div>
+                            <p class="text-slate-500 text-xs mt-2">Jobs closed & invoiced</p>
+                        </div>
+                        <div class="bg-brand-accent/10 border border-brand-accent/20 rounded-xl p-6">
+                            <div class="text-sm font-bold text-brand-accent uppercase tracking-wider mb-1">Invoiced Revenue (4.0x)</div>
+                            <div class="text-4xl font-black text-brand-accent">$9,000</div>
+                            <p class="text-brand-accent text-xs font-semibold mt-2">Assuming $1.5k avg. ticket</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-brand-dark text-white p-6 rounded-2xl space-y-4">
+                        <h4 class="font-bold text-lg border-b border-slate-800 pb-2">The Cash Flow Math:</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-slate-300">
+                            <div class="flex justify-between">
+                                <span>Gross Income (6 Jobs x $1,500)</span>
+                                <span class="font-bold text-white">$9,000</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Growth Tier Monthly Retainer</span>
+                                <span class="font-bold text-brand-accent">-$2,250</span>
+                            </div>
+                            <div class="flex justify-between sm:col-span-2 border-t border-slate-800 pt-2 text-base">
+                                <span class="font-bold text-white">Net Return (Before Tech Margins)</span>
+                                <span class="font-bold text-emerald-400">+$6,750</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-100 py-8">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center text-sm text-slate-400 gap-4">
+            <div class="flex items-center space-x-2">
+                <svg class="w-6 h-6 text-brand-accent" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 16V10C4 8.89543 4.89543 8 6 8H11V6C11 4.89543 11.8954 4 13 4H18C19.1046 4 20 4.89543 20 6V12C20 13.1046 19.1046 14 18 14H13V16C13 17.1046 12.1046 18 11 18H6C4.89543 18 4 17.1046 4 16Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+                </svg>
+                <span class="font-black text-brand-dark">Pipeline<span class="text-brand-accent">Pro</span></span>
+            </div>
+            <div>
+                © <span id="year"></span> PipelinePro. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Tab Script -->
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        function switchTab(tabId) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.add('hidden'));
+
+            // Show selected tab content
+            document.getElementById('content-' + tabId).classList.remove('hidden');
+
+            // Reset all tab button borders & colors
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('border-brand-accent', 'text-brand-accent');
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+
+            // Highlight selected button
+            const activeBtn = document.getElementById('tab-' + tabId);
+            activeBtn.classList.remove('border-transparent', 'text-slate-500');
+            activeBtn.classList.add('border-brand-accent', 'text-brand-accent');
+        }
+    </script>
+</body>
+</html>
