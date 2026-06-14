@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  --color-enigma-bg: #060608;
+  --color-enigma-panel: #0d0d12;
+  --color-enigma-panel-light: #161622;
+  --color-enigma-orange: #ff6600;
+  --color-enigma-orange-dim: #9a3412;
+  --color-enigma-green: #00ff66;
+  --color-enigma-green-dim: #166534;
+  --color-enigma-red: #ff3333;
+  --color-enigma-red-dim: #991b1b;
+  --color-enigma-purple: #9d4edd;
+  --color-enigma-purple-dim: #6b21a8;
+  --color-enigma-muted: #4b5563;
+  --color-enigma-border: #1c1c24;
+  --color-enigma-text: #f3f4f6;
+  --color-enigma-text-dim: #9ca3af;
+  
+  --font-terminal: "Courier New", Courier, monospace;
+}
+
+:root {
+  --background: #060608;
+  --foreground: #f3f4f6;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Custom terminal-style blinking cursor */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.terminal-cursor {
+  animation: blink 1s step-end infinite;
+}
+
+/* Scrollbar styling for Bloomberg dense look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #060608;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1c1c24;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ff6600;
+}
