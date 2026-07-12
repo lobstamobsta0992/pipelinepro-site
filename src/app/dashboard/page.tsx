@@ -28,7 +28,10 @@ import {
   Cpu,
   ZapOff,
   Maximize2,
+  Gamepad2,
+  Layers
 } from "lucide-react";
+import { PaperTradingTerminal } from "../../components/PaperTradingTerminal";
 
 // Types for whale alerts
 interface WhaleAlert {
@@ -107,6 +110,9 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<
     "war-room" | "cycle-intel" | "scanner" | "auto-trader" | "portfolio" | "whale-alerts"
   >("war-room");
+
+  // Trading mode state
+  const [tradingMode, setTradingMode] = useState<"live" | "paper">("live");
 
   // Onboarding user trial state
   const [trialTimeLeft, setTrialTimeLeft] = useState({
@@ -336,6 +342,20 @@ export default function Dashboard() {
         </div>
 
         <div className="flex items-center space-x-8">
+          <div className="flex items-center space-x-3 bg-black/40 border border-enigma-border p-1 rounded">
+            <button 
+              onClick={() => setTradingMode("live")}
+              className={`px-3 py-1 rounded text-[9px] font-bold uppercase transition-all ${tradingMode === 'live' ? 'bg-enigma-orange text-white' : 'text-enigma-text-dim hover:text-white'}`}
+            >
+              Live Intel
+            </button>
+            <button 
+              onClick={() => setTradingMode("paper")}
+              className={`px-3 py-1 rounded text-[9px] font-bold uppercase transition-all ${tradingMode === 'paper' ? 'bg-enigma-purple text-white shadow-[0_0_10px_rgba(157,78,221,0.3)]' : 'text-enigma-text-dim hover:text-white'}`}
+            >
+              Paper Trading
+            </button>
+          </div>
           <div className="flex items-center space-x-3">
             <span className="text-enigma-orange font-bold uppercase tracking-tighter">ELITE_TRIAL</span>
             <div className="flex space-x-1">
@@ -502,154 +522,194 @@ export default function Dashboard() {
           {/* TAB 1: WAR ROOM / E CHAT */}
           {activeTab === "war-room" && (
             <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
-              {/* Central Chat area */}
-              <div className="flex-1 flex flex-col h-full border-r border-enigma-border overflow-hidden">
-                {/* Header info */}
-                <div className="px-6 py-4 bg-[#0a0a0f] border-b border-enigma-border flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xs font-bold text-white flex items-center space-x-2 uppercase tracking-widest">
-                      <Cpu className="w-4 h-4 text-enigma-purple" />
-                      <span>E_BRAIN TERMINAL V2.4</span>
-                    </h2>
-                    <p className="text-[9px] text-enigma-text-dim mt-1 font-terminal uppercase tracking-tighter">Direct encrypted tunnel // Secure WebSocket active</p>
-                  </div>
+              {tradingMode === "live" ? (
+                <>
+                  {/* Central Chat area */}
+                  <div className="flex-1 flex flex-col h-full border-r border-enigma-border overflow-hidden">
+                    {/* Header info */}
+                    <div className="px-6 py-4 bg-[#0a0a0f] border-b border-enigma-border flex items-center justify-between">
+                      <div>
+                        <h2 className="text-xs font-bold text-white flex items-center space-x-2 uppercase tracking-widest">
+                          <Cpu className="w-4 h-4 text-enigma-purple" />
+                          <span>E_BRAIN TERMINAL V2.4</span>
+                        </h2>
+                        <p className="text-[9px] text-enigma-text-dim mt-1 font-terminal uppercase tracking-tighter">Direct encrypted tunnel // Secure WebSocket active</p>
+                      </div>
 
-                  {/* Adaptive adapter toggle */}
-                  <div className="flex items-center bg-black/40 border border-enigma-border rounded p-1">
-                    {["beginner", "intermediate", "advanced"].map((lvl) => (
-                      <button
-                        key={lvl}
-                        onClick={() => setDepth(lvl as any)}
-                        className={`text-[9px] px-3 py-1 rounded-sm uppercase font-bold transition-all ${
-                          depth === lvl ? "bg-enigma-orange text-white" : "text-enigma-text-dim hover:text-white"
-                        }`}
-                      >
-                        {lvl}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                      {/* Adaptive adapter toggle */}
+                      <div className="flex items-center bg-black/40 border border-enigma-border rounded p-1">
+                        {["beginner", "intermediate", "advanced"].map((lvl) => (
+                          <button
+                            key={lvl}
+                            onClick={() => setDepth(lvl as any)}
+                            className={`text-[9px] px-3 py-1 rounded-sm uppercase font-bold transition-all ${
+                              depth === lvl ? "bg-enigma-orange text-white" : "text-enigma-text-dim hover:text-white"
+                            }`}
+                          >
+                            {lvl}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-                {/* Messages feed */}
-                <div className="flex-1 p-6 overflow-y-auto space-y-6 font-terminal text-[11px] bg-[#060608] custom-scrollbar">
-                  {messages.map((msg, idx) => (
-                    <div key={idx} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[85%] rounded border p-4 relative group ${
-                        msg.sender === "user" 
-                          ? "bg-[#0d0d12] text-white border-enigma-border" 
-                          : "bg-[#0a0a0f] text-enigma-text border-purple-900/30 shadow-[0_0_20px_rgba(157,78,221,0.05)]"
-                      }`}>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className={`font-bold uppercase tracking-widest text-[9px] ${msg.sender === "user" ? "text-enigma-orange" : "text-enigma-purple"}`}>
-                            {msg.sender === "user" ? "USER_PROMPT" : "E_RESPONSE"}
-                          </span>
-                          <span className="text-[8px] text-enigma-muted">{msg.time}</span>
+                    {/* Messages feed */}
+                    <div className="flex-1 p-6 overflow-y-auto space-y-6 font-terminal text-[11px] bg-[#060608] custom-scrollbar">
+                      {messages.map((msg, idx) => (
+                        <div key={idx} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+                          <div className={`max-w-[85%] rounded border p-4 relative group ${
+                            msg.sender === "user" 
+                              ? "bg-[#0d0d12] text-white border-enigma-border" 
+                              : "bg-[#0a0a0f] text-enigma-text border-purple-900/30 shadow-[0_0_20px_rgba(157,78,221,0.05)]"
+                          }`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`font-bold uppercase tracking-widest text-[9px] ${msg.sender === "user" ? "text-enigma-orange" : "text-enigma-purple"}`}>
+                                {msg.sender === "user" ? "USER_PROMPT" : "E_RESPONSE"}
+                              </span>
+                              <span className="text-[8px] text-enigma-muted">{msg.time}</span>
+                            </div>
+                            <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                            {msg.sender === "e" && idx === messages.length - 1 && !isTyping && (
+                              <div className="mt-2 h-3 w-1 bg-enigma-purple terminal-cursor"></div>
+                            )}
+                          </div>
                         </div>
-                        <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
-                        {msg.sender === "e" && idx === messages.length - 1 && !isTyping && (
-                          <div className="mt-2 h-3 w-1 bg-enigma-purple terminal-cursor"></div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {isTyping && (
-                    <div className="flex justify-start">
-                      <div className="bg-[#0a0a0f] text-enigma-text border border-purple-900/30 rounded p-4">
-                        <div className="flex space-x-1.5">
-                          <div className="w-1.5 h-1.5 bg-enigma-purple rounded-full animate-bounce"></div>
-                          <div className="w-1.5 h-1.5 bg-enigma-purple rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                          <div className="w-1.5 h-1.5 bg-enigma-purple rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                      ))}
+                      {isTyping && (
+                        <div className="flex justify-start">
+                          <div className="bg-[#0a0a0f] text-enigma-text border border-purple-900/30 rounded p-4">
+                            <div className="flex space-x-1.5">
+                              <div className="w-1.5 h-1.5 bg-enigma-purple rounded-full animate-bounce"></div>
+                              <div className="w-1.5 h-1.5 bg-enigma-purple rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                              <div className="w-1.5 h-1.5 bg-enigma-purple rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                            </div>
+                          </div>
                         </div>
+                      )}
+                      <div ref={chatEndRef} />
+                    </div>
+
+                    {/* Terminal prompt input form */}
+                    <div className="p-4 bg-[#0a0a0f] border-t border-enigma-border">
+                      <div className="flex items-center space-x-2 mb-3 overflow-x-auto pb-1 scrollbar-none">
+                        <span className="text-[8px] font-terminal text-enigma-muted uppercase whitespace-nowrap">Macro Triggers:</span>
+                        <button onClick={() => setInputValue("Analyze Cumberland flows")} className="px-2 py-0.5 border border-enigma-border rounded text-[9px] text-enigma-text-dim hover:text-white hover:border-enigma-orange transition-colors">Cumberland Flows</button>
+                        <button onClick={() => setInputValue("SOL bid zones")} className="px-2 py-0.5 border border-enigma-border rounded text-[9px] text-enigma-text-dim hover:text-white hover:border-enigma-orange transition-colors">SOL Bid Zones</button>
+                        <button onClick={() => setInputValue("BTC Cycle Stage")} className="px-2 py-0.5 border border-enigma-border rounded text-[9px] text-enigma-text-dim hover:text-white hover:border-enigma-orange transition-colors">Cycle Stage</button>
+                        <button onClick={() => setInputValue("Fear & Greed Impact")} className="px-2 py-0.5 border border-enigma-border rounded text-[9px] text-enigma-text-dim hover:text-white hover:border-enigma-orange transition-colors">Fear & Greed</button>
+                      </div>
+                      <form onSubmit={handleSendMessage} className="flex space-x-3">
+                        <div className="flex-1 bg-black rounded border border-enigma-border flex items-center px-4 focus-within:border-enigma-orange transition-colors group">
+                          <span className="text-enigma-purple font-terminal text-xs mr-3 group-focus-within:text-enigma-orange transition-colors">E:\&gt;</span>
+                          <input
+                            type="text"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            placeholder="INPUT COMMAND..."
+                            className="flex-1 bg-transparent py-3 text-xs font-terminal text-white focus:outline-none"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          className="px-6 bg-gradient-to-r from-enigma-orange to-enigma-purple hover:scale-[1.02] active:scale-[0.98] text-white font-terminal text-xs rounded font-bold transition-all shadow-lg shadow-enigma-orange/10 uppercase tracking-widest"
+                        >
+                          Execute
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+
+                  {/* Right Panel: Live Feed Sidebar */}
+                  <div className="w-full lg:w-80 bg-[#08080a] flex flex-col h-full overflow-hidden shrink-0">
+                    <div className="px-5 py-4 border-b border-enigma-border bg-[#0a0a0f] flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-white font-terminal tracking-[0.2em] uppercase">Whale_Stream</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[8px] text-enigma-green font-terminal">LIVE</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-enigma-orange animate-ping"></span>
                       </div>
                     </div>
-                  )}
-                  <div ref={chatEndRef} />
-                </div>
 
-                {/* Terminal prompt input form */}
-                <div className="p-4 bg-[#0a0a0f] border-t border-enigma-border">
-                  <div className="flex items-center space-x-2 mb-3 overflow-x-auto pb-1 scrollbar-none">
-                    <span className="text-[8px] font-terminal text-enigma-muted uppercase whitespace-nowrap">Macro Triggers:</span>
-                    <button onClick={() => setInputValue("Analyze Cumberland flows")} className="px-2 py-0.5 border border-enigma-border rounded text-[9px] text-enigma-text-dim hover:text-white hover:border-enigma-orange transition-colors">Cumberland Flows</button>
-                    <button onClick={() => setInputValue("SOL bid zones")} className="px-2 py-0.5 border border-enigma-border rounded text-[9px] text-enigma-text-dim hover:text-white hover:border-enigma-orange transition-colors">SOL Bid Zones</button>
-                    <button onClick={() => setInputValue("BTC Cycle Stage")} className="px-2 py-0.5 border border-enigma-border rounded text-[9px] text-enigma-text-dim hover:text-white hover:border-enigma-orange transition-colors">Cycle Stage</button>
-                    <button onClick={() => setInputValue("Fear & Greed Impact")} className="px-2 py-0.5 border border-enigma-border rounded text-[9px] text-enigma-text-dim hover:text-white hover:border-enigma-orange transition-colors">Fear & Greed</button>
-                  </div>
-                  <form onSubmit={handleSendMessage} className="flex space-x-3">
-                    <div className="flex-1 bg-black rounded border border-enigma-border flex items-center px-4 focus-within:border-enigma-orange transition-colors group">
-                      <span className="text-enigma-purple font-terminal text-xs mr-3 group-focus-within:text-enigma-orange transition-colors">E:\&gt;</span>
-                      <input
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        placeholder="INPUT COMMAND..."
-                        className="flex-1 bg-transparent py-3 text-xs font-terminal text-white focus:outline-none"
-                      />
+                    <div className="flex-1 p-4 overflow-y-auto space-y-3 custom-scrollbar">
+                      {whaleAlerts.map((alert) => (
+                        <div key={alert.id} className="p-3 bg-[#0c0c12] border border-enigma-border rounded font-terminal text-[10px] space-y-2 hover:border-enigma-orange/30 transition-colors group">
+                          <div className="flex items-center justify-between">
+                            <span className={`px-1.5 py-0.5 rounded font-bold text-[8px] uppercase tracking-tighter ${
+                              alert.type === "deposit"
+                                ? "text-enigma-red bg-enigma-red/5"
+                                : alert.type === "withdrawal"
+                                ? "text-enigma-green bg-enigma-green/5"
+                                : "text-enigma-purple bg-enigma-purple/5"
+                            }`}>
+                              {alert.type}
+                            </span>
+                            <span className="text-enigma-muted text-[8px]">{alert.time}</span>
+                          </div>
+                          <div className="text-white font-bold text-xs">
+                            {alert.amount} <span className="text-enigma-text-dim">{alert.coin}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-[8px]">
+                            <span className="text-enigma-orange font-bold">{alert.value}</span>
+                            <ArrowUpRight className="w-2.5 h-2.5 text-enigma-muted group-hover:text-white transition-colors" />
+                          </div>
+                          <div className="pt-1.5 border-t border-enigma-border/30 flex flex-col space-y-1">
+                             <div className="text-[8px] truncate text-enigma-muted uppercase">From: <span className="text-white font-mono">{alert.from}</span></div>
+                             <div className="text-[8px] truncate text-enigma-muted uppercase">To: <span className="text-white font-mono">{alert.to}</span></div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <button
-                      type="submit"
-                      className="px-6 bg-gradient-to-r from-enigma-orange to-enigma-purple hover:scale-[1.02] active:scale-[0.98] text-white font-terminal text-xs rounded font-bold transition-all shadow-lg shadow-enigma-orange/10 uppercase tracking-widest"
-                    >
-                      Execute
-                    </button>
-                  </form>
-                </div>
-              </div>
 
-              {/* Right Panel: Live Feed Sidebar */}
-              <div className="w-full lg:w-80 bg-[#08080a] flex flex-col h-full overflow-hidden shrink-0">
-                <div className="px-5 py-4 border-b border-enigma-border bg-[#0a0a0f] flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-white font-terminal tracking-[0.2em] uppercase">Whale_Stream</span>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-[8px] text-enigma-green font-terminal">LIVE</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-enigma-orange animate-ping"></span>
-                  </div>
-                </div>
-
-                <div className="flex-1 p-4 overflow-y-auto space-y-3 custom-scrollbar">
-                  {whaleAlerts.map((alert) => (
-                    <div key={alert.id} className="p-3 bg-[#0c0c12] border border-enigma-border rounded font-terminal text-[10px] space-y-2 hover:border-enigma-orange/30 transition-colors group">
-                      <div className="flex items-center justify-between">
-                        <span className={`px-1.5 py-0.5 rounded font-bold text-[8px] uppercase tracking-tighter ${
-                          alert.type === "deposit"
-                            ? "text-enigma-red bg-enigma-red/5"
-                            : alert.type === "withdrawal"
-                            ? "text-enigma-green bg-enigma-green/5"
-                            : "text-enigma-purple bg-enigma-purple/5"
-                        }`}>
-                          {alert.type}
-                        </span>
-                        <span className="text-enigma-muted text-[8px]">{alert.time}</span>
+                    <div className="p-4 bg-[#0a0a0f] border-t border-enigma-border font-terminal text-[9px] space-y-3">
+                      <div className="flex justify-between items-center text-enigma-text-dim">
+                        <span>WHALE_INDEX (24H)</span>
+                        <span className="text-white font-bold">182 EVENTS</span>
                       </div>
-                      <div className="text-white font-bold text-xs">
-                        {alert.amount} <span className="text-enigma-text-dim">{alert.coin}</span>
+                      <div className="h-1 bg-gray-900 rounded-full overflow-hidden">
+                        <div className="h-full bg-enigma-orange w-[45%]"></div>
                       </div>
-                      <div className="flex items-center justify-between text-[8px]">
-                        <span className="text-enigma-orange font-bold">{alert.value}</span>
-                        <ArrowUpRight className="w-2.5 h-2.5 text-enigma-muted group-hover:text-white transition-colors" />
-                      </div>
-                      <div className="pt-1.5 border-t border-enigma-border/30 flex flex-col space-y-1">
-                         <div className="text-[8px] truncate text-enigma-muted uppercase">From: <span className="text-white font-mono">{alert.from}</span></div>
-                         <div className="text-[8px] truncate text-enigma-muted uppercase">To: <span className="text-white font-mono">{alert.to}</span></div>
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                         <button className="py-2 border border-enigma-border rounded text-white hover:bg-white/5 transition-colors uppercase font-bold text-[8px]">Export Logs</button>
+                         <button className="py-2 border border-enigma-border rounded text-white hover:bg-white/5 transition-colors uppercase font-bold text-[8px]">Filters</button>
                       </div>
                     </div>
-                  ))}
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden">
+                  <PaperTradingTerminal 
+                    userId={profile?.id || "trial-user"} 
+                    onCommentary={(text) => {
+                      setMessages(prev => [
+                        ...prev, 
+                        { sender: "e", text, time: new Date().toTimeString().split(" ")[0] }
+                      ]);
+                    }}
+                  />
+                  {/* Right Panel: E Chat in Paper Mode */}
+                  <div className="w-full lg:w-80 bg-[#08080a] border-l border-enigma-border flex flex-col h-full overflow-hidden shrink-0">
+                    <div className="px-5 py-4 border-b border-enigma-border bg-[#0a0a0f] flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-white font-terminal tracking-[0.2em] uppercase">E_COMMUNICATIONS</span>
+                      <Gamepad2 className="w-4 h-4 text-enigma-purple" />
+                    </div>
+                    <div className="flex-1 p-4 overflow-y-auto space-y-4 font-terminal text-[10px] custom-scrollbar bg-black/20">
+                      {messages.slice(-10).map((msg, idx) => (
+                        <div key={idx} className={`p-3 rounded border ${msg.sender === 'e' ? 'bg-enigma-purple/5 border-enigma-purple/20 text-enigma-text' : 'bg-white/5 border-enigma-border text-enigma-text-dim'}`}>
+                          <div className="flex justify-between mb-1">
+                            <span className="font-bold uppercase tracking-tighter text-[8px]">{msg.sender === 'e' ? 'E' : 'YOU'}</span>
+                            <span className="opacity-40 text-[7px]">{msg.time}</span>
+                          </div>
+                          <p>{msg.text}</p>
+                        </div>
+                      ))}
+                      <div ref={chatEndRef} />
+                    </div>
+                    <div className="p-4 bg-[#0a0a0f] border-t border-enigma-border">
+                       <p className="text-[8px] text-enigma-muted font-terminal leading-tight italic">
+                         "Paper trading mode is for testing strategies. E's advice here is optimized for high-risk DEX environments."
+                       </p>
+                    </div>
+                  </div>
                 </div>
-
-                <div className="p-4 bg-[#0a0a0f] border-t border-enigma-border font-terminal text-[9px] space-y-3">
-                  <div className="flex justify-between items-center text-enigma-text-dim">
-                    <span>WHALE_INDEX (24H)</span>
-                    <span className="text-white font-bold">182 EVENTS</span>
-                  </div>
-                  <div className="h-1 bg-gray-900 rounded-full overflow-hidden">
-                    <div className="h-full bg-enigma-orange w-[45%]"></div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 mt-2">
-                     <button className="py-2 border border-enigma-border rounded text-white hover:bg-white/5 transition-colors uppercase font-bold text-[8px]">Export Logs</button>
-                     <button className="py-2 border border-enigma-border rounded text-white hover:bg-white/5 transition-colors uppercase font-bold text-[8px]">Filters</button>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -778,11 +838,84 @@ export default function Dashboard() {
           {/* OTHER TABS (SIMILAR REFINEMENT) */}
           {/* ... Portfolio and Auto-Trader tabs would follow same precision pattern ... */}
           {activeTab === "portfolio" && (
-             <div className="p-8 flex items-center justify-center h-full">
-                <div className="text-center space-y-4">
-                   <BarChart2 className="w-12 h-12 text-enigma-green mx-auto opacity-50" />
-                   <div className="text-enigma-text-dim font-terminal uppercase tracking-widest text-xs">Portfolio Sync Pending Node Connectivity</div>
+             <div className="p-8 flex flex-col h-full max-w-[1200px] mx-auto w-full">
+                <div className="flex justify-between items-end mb-8">
+                  <div>
+                    <h2 className="text-xl font-bold text-white flex items-center space-x-2 tracking-tight uppercase">
+                      <BarChart2 className="w-5 h-5 text-enigma-green" />
+                      <span>{tradingMode === 'paper' ? 'Paper Portfolio' : 'Live Portfolio'}</span>
+                    </h2>
+                    <p className="text-[10px] text-enigma-text-dim mt-1 font-terminal uppercase tracking-widest">
+                      {tradingMode === 'paper' ? 'DEX Simulation Environment' : 'Node Connectivity Pending'}
+                    </p>
+                  </div>
+                  {tradingMode === 'paper' && (
+                    <div className="px-4 py-2 bg-enigma-purple/10 border border-enigma-purple/30 rounded text-enigma-purple font-terminal text-[10px] font-bold">
+                      MODE: SIMULATION
+                    </div>
+                  )}
                 </div>
+
+                {tradingMode === "paper" ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 space-y-6">
+                      <div className="bg-[#0d0d12] border border-enigma-border rounded p-6">
+                        <h3 className="text-[10px] font-bold text-enigma-muted uppercase tracking-[0.2em] mb-4">Asset Distribution</h3>
+                        <div className="h-64 flex items-center justify-center border border-enigma-border/30 rounded bg-black/20">
+                           <div className="text-center">
+                             <Layers className="w-8 h-8 text-enigma-muted mx-auto mb-2 opacity-20" />
+                             <span className="text-[9px] font-terminal text-enigma-muted uppercase">Visualizer Syncing...</span>
+                           </div>
+                        </div>
+                      </div>
+                      <div className="bg-[#0d0d12] border border-enigma-border rounded p-6">
+                        <h3 className="text-[10px] font-bold text-enigma-muted uppercase tracking-[0.2em] mb-4">Trade History</h3>
+                        <div className="space-y-3">
+                           {[1,2,3,4,5].map(i => (
+                             <div key={i} className="flex items-center justify-between p-3 border border-enigma-border/30 rounded bg-black/10 opacity-40">
+                               <div className="w-24 h-2 bg-white/5 rounded"></div>
+                               <div className="w-32 h-2 bg-white/5 rounded"></div>
+                               <div className="w-16 h-2 bg-white/5 rounded"></div>
+                             </div>
+                           ))}
+                           <p className="text-center text-[9px] font-terminal text-enigma-muted uppercase pt-4">Connect to E_BRAIN for full logs</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-6">
+                       <div className="bg-gradient-to-br from-[#0d0d12] to-[#16161d] border border-enigma-border rounded p-6">
+                          <h3 className="text-[10px] font-bold text-enigma-orange uppercase tracking-[0.2em] mb-4">Performance Metrics</h3>
+                          <div className="space-y-6">
+                             <div>
+                               <div className="text-[9px] text-enigma-muted uppercase mb-1">Win Rate</div>
+                               <div className="text-2xl font-bold text-white font-terminal">64.2%</div>
+                             </div>
+                             <div>
+                               <div className="text-[9px] text-enigma-muted uppercase mb-1">Profit Factor</div>
+                               <div className="text-2xl font-bold text-enigma-green font-terminal">2.14</div>
+                             </div>
+                             <div>
+                               <div className="text-[9px] text-enigma-muted uppercase mb-1">Max Drawdown</div>
+                               <div className="text-2xl font-bold text-enigma-red font-terminal">8.4%</div>
+                             </div>
+                          </div>
+                       </div>
+                       <button className="w-full py-4 bg-enigma-orange/10 border border-enigma-orange/30 hover:bg-enigma-orange/20 text-enigma-orange font-bold text-[10px] uppercase tracking-widest rounded transition-all">
+                         Reset Paper Account
+                       </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center space-y-4">
+                       <BarChart2 className="w-12 h-12 text-enigma-green mx-auto opacity-50" />
+                       <div className="text-enigma-text-dim font-terminal uppercase tracking-widest text-xs">Portfolio Sync Pending Node Connectivity</div>
+                       <button onClick={() => setTradingMode("paper")} className="px-6 py-2 bg-enigma-purple text-white text-[10px] font-bold rounded uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-enigma-purple/20">
+                         Switch to Paper Trading
+                       </button>
+                    </div>
+                  </div>
+                )}
              </div>
           )}
           
