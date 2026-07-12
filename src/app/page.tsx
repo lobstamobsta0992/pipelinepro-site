@@ -19,10 +19,14 @@ import {
   ArrowRight,
   Clock,
   Sparkles,
+  BarChart3,
+  Globe,
+  Cpu,
 } from "lucide-react";
+import { startOnboarding, sendOnboardingMessage } from "../lib/api";
 
 export default function Home() {
-  // Live Trial Countdown State (Simulating 5 days trial)
+  // Live Trial Countdown State
   const [countdown, setCountdown] = useState({
     days: "04",
     hours: "23",
@@ -33,12 +37,11 @@ export default function Home() {
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date().getTime();
-      // Pre-set some future target for demonstration (always 5 days in future relative to first load, stored in localStorage)
       let targetStr = localStorage.getItem("enigma_trial_target");
       let target = targetStr ? parseInt(targetStr) : 0;
       
       if (!target) {
-        target = now + 5 * 24 * 60 * 60 * 1000 + 4 * 60 * 1000; // 5 days + 4 mins
+        target = now + 5 * 24 * 60 * 60 * 1000 + 4 * 60 * 1000;
         localStorage.setItem("enigma_trial_target", target.toString());
       }
 
@@ -74,55 +77,50 @@ export default function Home() {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  // Pre-baked street-smart responses based on technical depth
-  const getEResponse = (input: string, level: typeof depth) => {
-    const query = input.toLowerCase();
-    
-    if (query.includes("btc") || query.includes("bitcoin") || query.includes("market") || query.includes("cycle")) {
-      if (level === "beginner") {
-        return "Bitcoin is currently in its 'Late Bull Accumulation' phase. Translation: The big money is quietly buying up the supply before the public FOMO kicks in. Watch the $65k level—if it holds, we head higher. Don't panic-sell the liquidations.";
-      } else if (level === "intermediate") {
-        return "BTC is defending key support at the 20-week EMA. The Pi Cycle Top indicator is still cool, meaning we aren't near a local peak. However, funding rates are slightly elevated. Whales are shifting stables into BTC, which usually signals a volatility expansion is imminent. Bias is long as long as $64,200 holds on a daily close.";
-      } else {
-        return "BTC/USD is forming a standard high-timeframe re-accumulation range. Weekly RSI is at 62, consolidating healthily. We've seen net negative exchange inflows for 12 consecutive days (-18k BTC). Derivative orderbooks show heavy bid depth clustered around the $63.8k liquidity pool. The MVRV Z-Score sits at 2.4—well below previous cycle tops of 6+, suggesting substantial expansion potential remains in this structural wave 5.";
+  // Initialize onboarding on first load
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const data = await startOnboarding();
+        setUserId(data.userId);
+        setMessages([{ sender: "e", text: data.message }]);
+      } catch (err) {
+        console.error("Failed to start onboarding:", err);
       }
-    }
+    };
+    init();
+  }, []);
 
-    if (query.includes("whale") || query.includes("alert") || query.includes("smart money")) {
-      if (level === "beginner") {
-        return "Whales are just ultra-wealthy investors. I track their wallets in real-time. Just saw a massive whale deposit $42 Million worth of ETH onto Coinbase—usually this means they might want to sell, or use it as collateral. Keep your guard up.";
-      } else if (level === "intermediate") {
-        return "Smart money wallet address 0x5a9f just rotated $2.4M out of high-cap stables into high-beta SOL ecosystem tokens. Typically, these guys get in 3-5 days before the pump. I've flagged this movement inside the scanner. If you want the exact wallet tracking, grab the Elite tier.";
-      } else {
-        return "On-chain monitoring indicates institutional cluster wallets (linked to Cumberland/FalconX) transferred 45,000,000 USDC into Coinbase/Binance over the last 4 hours. Historically, Cumberland exchange transfers of this magnitude have a 84% correlation with a local market bottom (+4.2% average swing over 48h). Recommend tracking the 0x3d... wallet cluster for sub-500k entry points.";
-      }
-    }
-
-    // Default response
-    if (level === "beginner") {
-      return "Interesting question. In crypto, you want to focus on risk management first. Let me know if you want to look at market cycles, check whale alerts, or scan some coins!";
-    } else if (level === "intermediate") {
-      return "Got it. Looking at the charts, volume is drying up on this consolidation. When volume declines during a flat range, it means a massive explosive move is cooking. Keep your stops tight and monitor whale wallet transfers.";
-    } else {
-      return "Understood. The macro structure exhibits a classic Wyckoff spring development. Volume profiling indicates a high volume node (HVN) at current levels, with a low volume node (LVN) directly below. I'm monitoring delta volume divergence to confirm institutional absorption.";
-    }
-  };
-
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || !userId) return;
 
     const userText = inputValue;
     setMessages((prev) => [...prev, { sender: "user", text: userText }]);
     setInputValue("");
     setIsTyping(true);
 
-    setTimeout(() => {
-      const eText = getEResponse(userText, depth);
-      setMessages((prev) => [...prev, { sender: "e", text: eText }]);
+    try {
+      const data = await sendOnboardingMessage(userId, userText, depth);
+      
+      setMessages((prev) => [...prev, { sender: "e", text: data.message }]);
+      
+      if (data.isComplete) {
+        if (data.profile) {
+          localStorage.setItem("enigma_user_profile", JSON.stringify(data.profile));
+        }
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 2000);
+      }
+    } catch (err) {
+      console.error("Chat error:", err);
+      setMessages((prev) => [...prev, { sender: "e", text: "System glitch. My brain is rebooting. Try again in a sec." }]);
+    } finally {
       setIsTyping(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -132,7 +130,7 @@ export default function Home() {
         <div className="max-w-[1400px] mx-auto flex items-center justify-between flex-wrap gap-y-1 gap-x-6">
           <div className="flex items-center space-x-2">
             <span className="inline-block w-2 h-2 rounded-full bg-enigma-purple animate-pulse"></span>
-            <span className="text-enigma-purple font-semibold">E-LIVE FEED:</span>
+            <span className="text-enigma-purple font-semibold uppercase tracking-tighter">System Live:</span>
           </div>
           <div className="flex items-center space-x-6 overflow-x-auto whitespace-nowrap scrollbar-none flex-1 justify-end">
             <span className="hover:text-white transition-colors">
@@ -145,13 +143,13 @@ export default function Home() {
               SOL-USD <span className="text-enigma-red">$142.80 (-1.2%)</span>
             </span>
             <span className="border-l border-enigma-border pl-4">
-              CYCLE PHASE: <span className="text-enigma-orange font-semibold">LATE BULL ACCUMULATION</span>
+              CYCLE: <span className="text-enigma-orange font-semibold">LATE BULL ACCUMULATION</span>
             </span>
             <span>
-              FEAR & GREED: <span className="text-enigma-green font-semibold">74 (GREED)</span>
+              SENTIMENT: <span className="text-enigma-green font-semibold">74 (GREED)</span>
             </span>
             <span className="border-l border-enigma-border pl-4 text-enigma-purple">
-              WHALE FEED: <span className="text-white">12,500 ETH ($43.8M) moved from cold wallet to exchange</span>
+              TELEMETRY: <span className="text-white">12,500 ETH ($43.8M) moved to Exchange</span>
             </span>
           </div>
         </div>
@@ -160,218 +158,183 @@ export default function Home() {
       {/* 2. Custom Navigation Header */}
       <header className="border-b border-enigma-border bg-enigma-bg/80 backdrop-blur sticky top-0 z-40 py-4 px-6">
         <div className="max-w-[1400px] mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <Link href="/" className="flex items-center space-x-3">
             <div className="w-8 h-8 rounded bg-gradient-to-br from-enigma-orange to-enigma-purple flex items-center justify-center font-bold text-white shadow-lg shadow-enigma-purple/20">
               Ξ
             </div>
             <div>
-              <span className="font-terminal font-bold tracking-widest text-lg bg-gradient-to-r from-enigma-orange to-white bg-clip-text text-transparent">
-                ENIGMA
+              <span className="font-terminal font-bold tracking-widest text-lg bg-gradient-to-r from-enigma-orange to-white bg-clip-text text-transparent uppercase">
+                Enigma
               </span>
-              <span className="font-sans font-light tracking-widest text-xs ml-1 text-[#9ca3af] block sm:inline">
+              <span className="font-sans font-light tracking-widest text-xs ml-1 text-[#9ca3af] hidden sm:inline">
                 INTELLIGENCE
               </span>
             </div>
-          </div>
+          </Link>
 
-          <nav className="hidden md:flex items-center space-x-8 text-sm">
-            <a href="#about" className="text-enigma-text-dim hover:text-white transition-colors">
-              Meet E
-            </a>
-            <a href="#features" className="text-enigma-text-dim hover:text-white transition-colors">
-              Scanner & Tools
-            </a>
-            <a href="#lockouts" className="text-enigma-text-dim hover:text-white transition-colors">
-              War Room Previews
-            </a>
+          <nav className="hidden md:flex items-center space-x-8 text-[10px] uppercase tracking-[0.2em] font-bold">
+            <Link href="/how-it-works" className="text-enigma-text-dim hover:text-white transition-colors">
+              How it Works
+            </Link>
+            <Link href="/methodology" className="text-enigma-text-dim hover:text-white transition-colors">
+              Methodology
+            </Link>
             <a href="#pricing" className="text-enigma-text-dim hover:text-white transition-colors">
-              Pricing Plans
+              Pricing
             </a>
           </nav>
 
           <div className="flex items-center space-x-4">
             <Link
               href="/dashboard"
-              className="px-4 py-2 bg-gradient-to-r from-enigma-orange to-enigma-purple hover:opacity-90 text-white font-medium rounded text-sm transition-all shadow-md shadow-enigma-orange/20 flex items-center space-x-2"
+              className="px-4 py-2 bg-white text-black hover:bg-orange-500 hover:text-white font-bold rounded text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center space-x-2"
             >
-              <span>Enter War Room</span>
-              <ArrowUpRight className="w-4 h-4" />
+              <span>Launch Terminal</span>
+              <ArrowUpRight className="w-3 h-3" />
             </Link>
           </div>
         </div>
       </header>
 
       {/* 3. Hero Section & E Chat Centerpiece */}
-      <section className="relative py-16 md:py-24 px-6 border-b border-enigma-border overflow-hidden">
+      <section className="relative py-16 md:py-24 px-6 border-b border-enigma-border overflow-hidden bg-gradient-to-b from-[#060608] to-[#0a0a0f]">
         {/* Glow Effects */}
-        <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-enigma-orange/10 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-enigma-purple/10 rounded-full blur-[120px] pointer-events-none"></div>
-
+        <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-enigma-orange/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-enigma-purple/5 rounded-full blur-[120px] pointer-events-none"></div>
+        
         <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          {/* Tagline Column */}
           <div className="lg:col-span-5 flex flex-col space-y-6">
-            <div className="inline-flex items-center space-x-2 bg-enigma-panel-light/60 border border-enigma-purple/30 rounded-full px-3 py-1 text-xs text-enigma-purple w-fit">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>5-Day Elite Free Trial Available • No Credit Card Required</span>
+            <div className="inline-flex items-center space-x-2 bg-enigma-panel-light/60 border border-enigma-purple/30 rounded-full px-3 py-1 text-[10px] uppercase tracking-widest text-enigma-purple w-fit font-bold">
+              <Sparkles className="w-3 h-3" />
+              <span>Institutional Grade Intelligence • 5-Day Free Trial</span>
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.1] text-white">
-              An AI-Centric <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-enigma-orange to-enigma-purple">
-                Crypto Intelligence
+            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tighter leading-[0.9] text-white uppercase">
+              DECODE THE <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-purple-600">
+                BLOCKCHAIN
               </span>{" "}
-              Platform.
+              MATRIX.
             </h1>
 
-            <p className="text-[#9ca3af] text-lg leading-relaxed max-w-xl">
-              Meet <strong className="text-white">E</strong>, your persistent, street-smart crypto trading partner.
-              E monitors market cycles, tracks whale wallets, aggregates sentiment, and executes automation. E adapts
-              to your knowledge level in real-time.
+            <p className="text-[#9ca3af] text-lg leading-relaxed max-w-xl font-mono">
+              Meet <strong className="text-white">E</strong>, your vertically integrated trading partner. Enigma monitors 5,000+ smart-money wallets and macro cycle telemetry to deliver high-probability alpha.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Link
                 href="/dashboard"
-                className="px-6 py-3 bg-enigma-orange text-white font-medium rounded hover:bg-enigma-orange/90 transition-colors shadow-lg shadow-enigma-orange/20 text-center flex items-center justify-center space-x-2"
+                className="px-8 py-4 bg-orange-600 text-white font-bold uppercase tracking-widest rounded hover:bg-orange-500 transition-all shadow-lg shadow-orange-900/20 text-center flex items-center justify-center space-x-2"
               >
-                <span>Launch Elite Trial</span>
+                <span>Activate Elite Beta</span>
                 <Play className="w-4 h-4 fill-current" />
               </Link>
-              <a
-                href="#pricing"
-                className="px-6 py-3 bg-enigma-panel border border-enigma-border rounded text-enigma-text font-medium hover:bg-enigma-panel-light transition-colors text-center"
+              <Link
+                href="/how-it-works"
+                className="px-8 py-4 bg-transparent border border-gray-800 text-white font-bold uppercase tracking-widest rounded hover:bg-gray-900 transition-all text-center"
               >
-                View Plans
-              </a>
+                The Methodology
+              </Link>
             </div>
 
-            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-enigma-border">
-              <div>
-                <span className="block text-2xl font-bold text-white">5 Days</span>
-                <span className="text-xs text-enigma-text-dim">Elite Free Trial</span>
-              </div>
-              <div>
-                <span className="block text-2xl font-bold text-white">200+ Coins</span>
-                <span className="text-xs text-enigma-text-dim">Real-time Scanner</span>
-              </div>
-              <div>
-                <span className="block text-2xl font-bold text-white">$500k+</span>
-                <span className="text-xs text-enigma-text-dim">Whale Alert Cap</span>
-              </div>
+            <div className="flex space-x-6 pt-8 text-[10px] text-gray-600 font-bold uppercase tracking-[0.2em]">
+              <span>#CryptoAI</span>
+              <span>#WhaleWatcher</span>
+              <span>#TradingAlpha</span>
             </div>
           </div>
 
           {/* Interactive E Chat Centerpiece */}
           <div className="lg:col-span-7">
-            <div className="bg-enigma-panel border border-enigma-border rounded-lg shadow-2xl overflow-hidden flex flex-col h-[520px]">
+            <div className="bg-[#0d0d12] border border-gray-800 rounded shadow-2xl overflow-hidden flex flex-col h-[520px] relative">
               {/* Terminal Header */}
-              <div className="bg-[#07070a] px-4 py-3 border-b border-enigma-border flex items-center justify-between">
+              <div className="bg-[#07070a] px-4 py-3 border-b border-gray-800 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-enigma-red"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-enigma-orange"></div>
-                  <div className="w-2.5 h-2.5 rounded-full bg-enigma-green"></div>
-                  <span className="font-terminal text-xs text-[#9ca3af] ml-2">E_SOUL_CONSOLE_v1.09</span>
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-900"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-orange-900"></div>
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-900"></div>
+                  <span className="font-terminal text-[10px] uppercase tracking-widest text-gray-500 ml-2">E_BRAIN_V2_ENCRYPTED</span>
                 </div>
 
                 {/* Technical Depth Selector */}
-                <div className="flex items-center bg-enigma-bg border border-enigma-border rounded px-1 py-0.5">
-                  <span className="text-[10px] text-enigma-text-dim px-2 hidden sm:inline">ADAPTER DEPTH:</span>
+                <div className="flex items-center bg-black border border-gray-800 rounded px-1 py-0.5">
+                  <span className="text-[9px] text-gray-600 px-2 hidden sm:inline font-bold uppercase">Depth:</span>
                   <button
                     onClick={() => setDepth("beginner")}
-                    className={`text-[10px] px-2 py-0.5 rounded transition-all ${
-                      depth === "beginner" ? "bg-enigma-orange text-white" : "text-enigma-text-dim hover:text-white"
+                    className={`text-[9px] px-2 py-0.5 rounded transition-all uppercase font-bold ${
+                      depth === "beginner" ? "bg-orange-600 text-white" : "text-gray-500 hover:text-white"
                     }`}
                   >
-                    Beginner
+                    Beg
                   </button>
                   <button
                     onClick={() => setDepth("intermediate")}
-                    className={`text-[10px] px-2 py-0.5 rounded transition-all ${
-                      depth === "intermediate" ? "bg-enigma-orange text-white" : "text-enigma-text-dim hover:text-white"
+                    className={`text-[9px] px-2 py-0.5 rounded transition-all uppercase font-bold ${
+                      depth === "intermediate" ? "bg-orange-600 text-white" : "text-gray-500 hover:text-white"
                     }`}
                   >
-                    Intermediate
+                    Int
                   </button>
                   <button
                     onClick={() => setDepth("advanced")}
-                    className={`text-[10px] px-2 py-0.5 rounded transition-all ${
-                      depth === "advanced" ? "bg-enigma-orange text-white" : "text-enigma-text-dim hover:text-white"
+                    className={`text-[9px] px-2 py-0.5 rounded transition-all uppercase font-bold ${
+                      depth === "advanced" ? "bg-orange-600 text-white" : "text-gray-500 hover:text-white"
                     }`}
                   >
-                    Advanced
+                    Adv
                   </button>
                 </div>
               </div>
 
               {/* Chat Messages */}
-              <div className="flex-1 p-6 overflow-y-auto space-y-4 font-terminal text-xs leading-relaxed">
+              <div className="flex-1 p-6 overflow-y-auto space-y-4 font-mono text-xs leading-relaxed">
                 {messages.map((msg, idx) => (
                   <div key={idx} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
                     <div
-                      className={`max-w-[85%] rounded p-3 ${
+                      className={`max-w-[85%] p-4 rounded ${
                         msg.sender === "user"
-                          ? "bg-enigma-panel-light text-white border border-enigma-border"
-                          : "bg-enigma-bg text-enigma-text border border-enigma-border"
+                          ? "bg-[#1a1a24] text-white border border-gray-800"
+                          : "bg-black text-gray-300 border border-gray-800"
                       }`}
                     >
                       {msg.sender === "e" && (
-                        <div className="flex items-center space-x-1.5 mb-1 text-enigma-purple font-bold">
-                          <span>E</span>
-                          <span className="text-[9px] px-1 bg-enigma-purple/20 border border-enigma-purple/40 rounded text-enigma-purple font-normal">
-                            AI PARTNER
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="text-purple-500 font-bold uppercase tracking-widest">[E]</span>
+                          <span className="text-[8px] px-1 bg-purple-900/20 border border-purple-800 rounded text-purple-400 font-bold uppercase">
+                            Intelligence Core
                           </span>
                         </div>
                       )}
                       {msg.sender === "user" && (
-                        <div className="text-right text-enigma-orange font-bold mb-1">TRADER</div>
+                        <div className="text-right text-orange-500 font-bold uppercase tracking-widest mb-2">[TRADER]</div>
                       )}
-                      <p>{msg.text}</p>
+                      <p className={msg.sender === "e" ? "text-gray-300" : "text-white"}>{msg.text}</p>
                     </div>
                   </div>
                 ))}
                 {isTyping && (
                   <div className="flex justify-start">
-                    <div className="bg-enigma-bg text-enigma-text border border-enigma-border rounded p-3">
-                      <div className="flex items-center space-x-1.5 mb-1 text-enigma-purple font-bold">
-                        <span>E</span>
-                      </div>
-                      <span className="inline-block w-2 h-4 bg-enigma-purple animate-pulse"></span>
+                    <div className="bg-black text-gray-500 border border-gray-800 rounded p-4 font-mono">
+                      <span className="animate-pulse">_PROCESSING...</span>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Suggestions Helper */}
-              <div className="px-6 py-2 bg-[#08080c] border-t border-enigma-border flex items-center space-x-2 overflow-x-auto whitespace-nowrap text-[10px]">
-                <span className="text-enigma-text-dim font-terminal">QUICK TOPICS:</span>
-                <button
-                  onClick={() => setInputValue("What is the current BTC cycle status?")}
-                  className="px-2 py-1 bg-enigma-panel border border-enigma-border rounded text-enigma-text hover:border-enigma-orange transition-colors"
-                >
-                  BTC Cycle Status
-                </button>
-                <button
-                  onClick={() => setInputValue("Any whale alerts active right now?")}
-                  className="px-2 py-1 bg-enigma-panel border border-enigma-border rounded text-enigma-text hover:border-enigma-orange transition-colors"
-                >
-                  Whale Alerts
-                </button>
-              </div>
-
               {/* Chat Input */}
-              <form onSubmit={handleSendMessage} className="p-4 bg-[#07070a] border-t border-enigma-border flex space-x-3">
+              <form onSubmit={handleSendMessage} className="p-4 bg-[#07070a] border-t border-gray-800 flex space-x-3">
                 <input
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Ask E anything (e.g., 'Analyze BTC', 'Whale wallets tracker')..."
-                  className="flex-1 bg-enigma-bg border border-enigma-border rounded px-4 py-3 text-xs font-terminal text-white placeholder-enigma-muted focus:outline-none focus:border-enigma-orange focus:ring-1 focus:ring-enigma-orange"
+                  placeholder="Initiate analysis protocol..."
+                  className="flex-1 bg-black border border-gray-800 rounded px-4 py-3 text-[10px] uppercase font-mono text-white placeholder-gray-700 focus:outline-none focus:border-orange-600 transition-colors"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-enigma-orange hover:bg-enigma-orange/90 text-white rounded font-terminal text-xs transition-colors"
+                  className="px-6 py-2 bg-gray-800 hover:bg-orange-600 text-white rounded font-bold text-[10px] uppercase tracking-widest transition-all"
                 >
-                  EXECUTE
+                  Execute
                 </button>
               </form>
             </div>
@@ -379,326 +342,125 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. Core Features Grid */}
-      <section id="features" className="py-20 px-6 border-b border-enigma-border bg-[#09090e]">
+      {/* 4. Feature Snapshots Section */}
+      <section className="py-24 px-6 border-b border-enigma-border bg-black">
         <div className="max-w-[1400px] mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl font-bold text-white mb-4">Elite Intelligence Capabilities</h2>
-            <p className="text-enigma-text-dim">
-              Enigma acts as a terminal wrapper. Deep live data feeds, real-time trigger scripts, and an AI execution engine working together.
-            </p>
+          <div className="grid md:grid-cols-2 gap-24 items-center mb-32">
+            <div>
+              <h2 className="text-sm font-bold text-orange-500 uppercase tracking-[0.3em] mb-4">Phase 1 Integration</h2>
+              <h3 className="text-4xl md:text-5xl font-extrabold text-white tracking-tighter uppercase mb-6 leading-none">
+                THE COMMAND <br />DASHBOARD
+              </h3>
+              <p className="text-gray-500 text-lg leading-relaxed mb-8 font-mono">
+                A high-density UI designed for speed. Monitor whale feeds, cycle ratios, and AI signals from a single, vertically integrated war room.
+              </p>
+              <Link href="/how-it-works" className="text-white font-bold uppercase tracking-widest text-xs flex items-center group">
+                Explore the Interface <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-2 transition-transform" />
+              </Link>
+            </div>
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-orange-600 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+              <div className="relative bg-[#0d0d12] border border-gray-800 rounded-lg overflow-hidden p-2">
+                <img src="/screenshots/dashboard-preview.png" alt="Enigma Dashboard" className="rounded grayscale hover:grayscale-0 transition-all duration-700" />
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <div className="bg-enigma-panel border border-enigma-border p-6 rounded-lg hover:border-enigma-purple/40 transition-colors">
-              <Compass className="w-8 h-8 text-enigma-purple mb-4" />
-              <h3 className="text-lg font-bold text-white mb-2">Cycle Intelligence</h3>
-              <p className="text-xs text-enigma-text-dim leading-relaxed">
-                Stay macro-aware. Track accumulation patterns, standard deviations from cycle bottoms, and structural exhaustion levels before markets rotate.
-              </p>
+          <div className="grid md:grid-cols-2 gap-24 items-center">
+            <div className="order-2 md:order-1">
+              <div className="bg-[#0d0d12] border border-gray-800 rounded-lg overflow-hidden p-8 font-mono text-[10px] space-y-4">
+                <div className="flex justify-between border-b border-gray-900 pb-4">
+                  <span className="text-gray-600 uppercase">Metric</span>
+                  <span className="text-gray-600 uppercase">Accuracy</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white uppercase">Whale classification</span>
+                  <span className="text-green-500 font-bold">94.2%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white uppercase">Cycle Top Precision</span>
+                  <span className="text-green-500 font-bold">88.7%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white uppercase">Sentiment Alpha</span>
+                  <span className="text-green-500 font-bold">72.1%</span>
+                </div>
+                <div className="pt-4">
+                  <Link href="/methodology" className="bg-white/5 hover:bg-white/10 text-white w-full py-3 block text-center rounded uppercase tracking-widest font-bold">
+                    View Full Methodology
+                  </Link>
+                </div>
+              </div>
             </div>
-
-            {/* Feature 2 */}
-            <div className="bg-enigma-panel border border-enigma-border p-6 rounded-lg hover:border-enigma-orange/40 transition-colors">
-              <ShieldAlert className="w-8 h-8 text-enigma-orange mb-4" />
-              <h3 className="text-lg font-bold text-white mb-2">Real-time Whale Tracking</h3>
-              <p className="text-xs text-enigma-text-dim leading-relaxed">
-                Monitor whale activity over $500k in real-time. Know where smart money rotates capital before they execute on public orderbooks.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="bg-enigma-panel border border-enigma-border p-6 rounded-lg hover:border-enigma-green/40 transition-colors">
-              <Zap className="w-8 h-8 text-enigma-green mb-4" />
-              <h3 className="text-lg font-bold text-white mb-2">Auto-Trading Engine</h3>
-              <p className="text-xs text-enigma-text-dim leading-relaxed">
-                Elite automation. Seamlessly deploy E to execute automated buy and sell blocks on your Coinbase Advanced account based on real-time triggers.
-              </p>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="bg-enigma-panel border border-enigma-border p-6 rounded-lg hover:border-enigma-orange/40 transition-colors">
-              <Database className="w-8 h-8 text-enigma-orange mb-4" />
-              <h3 className="text-lg font-bold text-white mb-2">Market Scanner</h3>
-              <p className="text-xs text-enigma-text-dim leading-relaxed">
-                Instantly filter across 200+ leading coins. Detect momentum divergences, RSI extremes, and orderbook pressure within seconds.
-              </p>
-            </div>
-
-            {/* Feature 5 */}
-            <div className="bg-enigma-panel border border-enigma-border p-6 rounded-lg hover:border-enigma-purple/40 transition-colors">
-              <MessageSquare className="w-8 h-8 text-enigma-purple mb-4" />
-              <h3 className="text-lg font-bold text-white mb-2">E Chat Engine</h3>
-              <p className="text-xs text-enigma-text-dim leading-relaxed">
-                Your direct hotline to cycle data. Chat naturally with E to run scripts, calculate on-chain health, and plan execution strategies.
-              </p>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="bg-enigma-panel border border-enigma-border p-6 rounded-lg hover:border-enigma-green/40 transition-colors">
-              <Sparkles className="w-8 h-8 text-enigma-green mb-4" />
-              <h3 className="text-lg font-bold text-white mb-2">Adaptive Adapter</h3>
-              <p className="text-xs text-enigma-text-dim leading-relaxed">
-                Beginner or advanced, E adapts. E explains complex derivative delta curves simply, or gives raw metrics, standard deviations, and MVRV stats dynamically.
+            <div className="order-1 md:order-2">
+              <h2 className="text-sm font-bold text-purple-500 uppercase tracking-[0.3em] mb-4">Quantitative Alpha</h2>
+              <h3 className="text-4xl md:text-5xl font-extrabold text-white tracking-tighter uppercase mb-6 leading-none">
+                BACKTESTED <br />PRECISION.
+              </h3>
+              <p className="text-gray-500 text-lg leading-relaxed mb-8 font-mono">
+                We don't trade on hope. Our AI core analyzes historical cycle tops and bottom-formation telemetry to map high-probability signatures.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 5. Feature Lockout Preview Sections */}
-      <section id="lockouts" className="py-20 px-6 border-b border-enigma-border">
+      {/* 5. Pricing Section */}
+      <section id="pricing" className="py-24 px-6 bg-[#09090e] border-b border-enigma-border">
         <div className="max-w-[1400px] mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl font-bold text-white mb-4">Elite Dashboard Preview</h2>
-            <p className="text-enigma-text-dim">
-              Get a teaser of the powerful premium intelligence tools reserved for our active trial and Elite tier members.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Locked Feature 1: Market Scanner */}
-            <div className="flex flex-col space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-white font-terminal tracking-wider">PREVIEW: MARKET SCANNER (200+ COINS)</span>
-                <span className="px-2 py-0.5 bg-enigma-orange/20 border border-enigma-orange/40 rounded text-[10px] text-enigma-orange font-semibold">
-                  ELITE ONLY
-                </span>
-              </div>
-
-              {/* Blurred Mockup Grid */}
-              <div className="relative border border-enigma-border rounded-lg bg-enigma-panel overflow-hidden h-[300px]">
-                {/* Lock Overlay */}
-                <div className="absolute inset-0 bg-[#060608]/40 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6 text-center">
-                  <div className="w-12 h-12 rounded-full bg-enigma-orange/20 border border-enigma-orange/40 flex items-center justify-center mb-4 text-enigma-orange animate-bounce">
-                    <Lock className="w-5 h-5" />
-                  </div>
-                  <h4 className="text-base font-bold text-white mb-1">Market Scanner is Locked</h4>
-                  <p className="text-xs text-enigma-text-dim max-w-md mb-4 leading-relaxed">
-                    Instantly scan volume, RSI, and funding rates across 200+ high-beta coins. Free and Pro tiers have limited preview metrics.
-                  </p>
-                  <Link
-                    href="/dashboard"
-                    className="px-4 py-2 bg-enigma-orange hover:bg-enigma-orange/90 text-white font-semibold text-xs rounded transition-colors"
-                  >
-                    Unlock with Elite Trial
-                  </Link>
-                </div>
-
-                {/* Simulated Blurred Content */}
-                <div className="p-4 space-y-3 font-terminal text-[10px] select-none pointer-events-none">
-                  <div className="grid grid-cols-6 border-b border-enigma-border pb-2 text-[#9ca3af]">
-                    <span>COIN</span>
-                    <span>PRICE</span>
-                    <span>24H</span>
-                    <span>RSI (14)</span>
-                    <span>FUNDING</span>
-                    <span>ALERT</span>
-                  </div>
-                  {[
-                    { coin: "BTC", price: "$67,420", change: "+1.4%", rsi: "58.2", fund: "+0.010%", alert: "COOL" },
-                    { coin: "ETH", price: "$3,510", change: "+0.8%", rsi: "54.5", fund: "+0.005%", alert: "COOL" },
-                    { coin: "SOL", price: "$142.8", change: "-1.2%", rsi: "38.1", fund: "+0.015%", alert: "OVERSOLD" },
-                    { coin: "DOGE", price: "$0.141", change: "+4.2%", rsi: "71.4", fund: "+0.030%", alert: "OVERBOUGHT" },
-                    { coin: "LINK", price: "$15.42", change: "+0.5%", rsi: "44.1", fund: "+0.002%", alert: "ACCUMULATION" },
-                    { coin: "PEPE", price: "$0.000012", change: "+12.1%", rsi: "68.9", fund: "+0.045%", alert: "MOMENTUM" },
-                  ].map((row, idx) => (
-                    <div key={idx} className="grid grid-cols-6 border-b border-enigma-border/40 py-2">
-                      <span className="font-bold text-white">{row.coin}</span>
-                      <span>{row.price}</span>
-                      <span className="text-enigma-green">{row.change}</span>
-                      <span>{row.rsi}</span>
-                      <span>{row.fund}</span>
-                      <span>{row.alert}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Locked Feature 2: Auto-Trading Engine */}
-            <div className="flex flex-col space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-white font-terminal tracking-wider">PREVIEW: COINBASE AUTO-TRADING ENGINE</span>
-                <span className="px-2 py-0.5 bg-enigma-purple/20 border border-enigma-purple/40 rounded text-[10px] text-enigma-purple font-semibold">
-                  ELITE ONLY
-                </span>
-              </div>
-
-              {/* Blurred Mockup Panel */}
-              <div className="relative border border-enigma-border rounded-lg bg-enigma-panel overflow-hidden h-[300px]">
-                {/* Lock Overlay */}
-                <div className="absolute inset-0 bg-[#060608]/40 backdrop-blur-md z-10 flex flex-col items-center justify-center p-6 text-center">
-                  <div className="w-12 h-12 rounded-full bg-enigma-purple/20 border border-enigma-purple/40 flex items-center justify-center mb-4 text-enigma-purple animate-pulse">
-                    <Lock className="w-5 h-5" />
-                  </div>
-                  <h4 className="text-base font-bold text-white mb-1">Auto-Trading Console is Locked</h4>
-                  <p className="text-xs text-enigma-text-dim max-w-md mb-4 leading-relaxed">
-                    Deploy E to scan real-time order blocks and automatically place Coinbase trade orders inside our high-speed secure sandbox.
-                  </p>
-                  <Link
-                    href="/dashboard"
-                    className="px-4 py-2 bg-enigma-purple hover:bg-enigma-purple/90 text-white font-semibold text-xs rounded transition-colors"
-                  >
-                    Unlock with Elite Trial
-                  </Link>
-                </div>
-
-                {/* Simulated Blurred Content */}
-                <div className="p-6 flex flex-col space-y-4 font-terminal text-[10px] select-none pointer-events-none">
-                  <div className="flex justify-between items-center bg-enigma-bg p-4 border border-enigma-border rounded">
-                    <div>
-                      <div className="text-[#9ca3af]">COINBASE API STATUS:</div>
-                      <div className="font-bold text-enigma-green text-xs">CONNECTED (SANDBOX)</div>
-                    </div>
-                    <div className="px-3 py-1.5 bg-enigma-muted rounded text-white">DEACTIVATE ENGINE</div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="text-white font-bold">AUTOMATED EXECUTION LOGS:</div>
-                    <div className="p-3 bg-[#060608] border border-enigma-border rounded h-[120px] overflow-hidden space-y-1.5 font-mono text-[9px] text-enigma-text-dim">
-                      <div>[04:22:15] E ENGINE initialized... scanning cycles.</div>
-                      <div>[04:22:18] WHALE TRANSFERS trigger detected on SOL/USDC pool.</div>
-                      <div>[04:22:20] EXECUTION: BUY SOL block - Size: 15.2 SOL ($2,160 USD)</div>
-                      <div>[04:22:21] Coinbase Order ID: 29a8f102-cb90... SOLD OUT. Success.</div>
-                      <div>[04:23:05] Watching BTC support line...</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Premium Pricing Section */}
-      <section id="pricing" className="py-20 px-6 bg-[#09090e] border-b border-enigma-border">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl font-bold text-white mb-4">Elite Pricing Tiers</h2>
-            <p className="text-enigma-text-dim">
-              Activate your 5-day Elite Free Trial to test drive full unlimited capabilities—no credit card required. Churn anytime.
+          <div className="text-center max-w-2xl mx-auto mb-20">
+            <h2 className="text-[10px] font-bold text-orange-500 uppercase tracking-[0.4em] mb-4 font-mono">Subscription Access</h2>
+            <h3 className="text-4xl font-extrabold text-white tracking-tighter uppercase mb-4">Choose Your Tier</h3>
+            <p className="text-gray-500 font-mono text-sm">
+              All tiers include a 5-day Elite trial upon initial activation.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Free Plan */}
-            <div className="bg-enigma-panel border border-enigma-border p-8 rounded-lg flex flex-col justify-between hover:border-enigma-muted transition-colors">
-              <div>
-                <h3 className="text-lg font-bold text-white mb-2">Enigma Free</h3>
-                <p className="text-xs text-enigma-text-dim mb-6">Preview tier to experience E's raw persona.</p>
-                <div className="text-3xl font-extrabold text-white mb-6">
-                  $0<span className="text-xs text-enigma-text-dim font-normal">/mo</span>
-                </div>
-                <ul className="space-y-3 text-xs text-enigma-text-dim border-t border-enigma-border pt-6 mb-8">
-                  <li className="flex items-center space-x-2">
-                    <span className="text-enigma-orange">•</span>
-                    <span>2 Daily Messages with E</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <span className="text-enigma-orange">•</span>
-                    <span>Standard technical depth</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <span className="text-enigma-orange">•</span>
-                    <span>Delayed Whale alerts (&gt;$10M)</span>
-                  </li>
-                  <li className="flex items-center space-x-2 line-through opacity-40">
-                    <span className="text-enigma-orange">•</span>
-                    <span>Live Market Scanner</span>
-                  </li>
-                  <li className="flex items-center space-x-2 line-through opacity-40">
-                    <span className="text-enigma-orange">•</span>
-                    <span>Coinbase Auto-Trading</span>
-                  </li>
-                </ul>
-              </div>
-              <Link
-                href="/dashboard"
-                className="w-full py-3 bg-enigma-bg border border-enigma-border hover:bg-enigma-panel-light text-center text-xs font-semibold rounded transition-colors text-white"
-              >
-                Launch Free Dashboard
-              </Link>
-            </div>
-
             {/* Pro Plan */}
-            <div className="bg-enigma-panel border border-enigma-border p-8 rounded-lg flex flex-col justify-between hover:border-enigma-orange transition-colors relative">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-enigma-orange rounded-full text-[10px] text-white font-bold tracking-widest uppercase shadow">
-                Most Popular
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-white mb-2">Enigma Pro</h3>
-                <p className="text-xs text-enigma-text-dim mb-6">Full cycle metrics and deeper whale alerts.</p>
-                <div className="text-3xl font-extrabold text-white mb-6">
-                  $49<span className="text-xs text-enigma-text-dim font-normal">/mo</span>
-                </div>
-                <ul className="space-y-3 text-xs text-enigma-text-dim border-t border-enigma-border pt-6 mb-8">
-                  <li className="flex items-center space-x-2">
-                    <span className="text-enigma-orange">•</span>
-                    <span className="text-white">20 Daily Messages with E</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <span className="text-enigma-orange">•</span>
-                    <span>Full Cycle Intelligence Panel</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <span className="text-enigma-orange">•</span>
-                    <span>Research Tools (Coin Deep Dives)</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <span className="text-enigma-orange">•</span>
-                    <span>Real-time Whale alerts (&gt;$1M)</span>
-                  </li>
-                  <li className="flex items-center space-x-2 line-through opacity-40">
-                    <span className="text-enigma-orange">•</span>
-                    <span>Coinbase Auto-Trading Engine</span>
-                  </li>
-                </ul>
-              </div>
-              <Link
-                href="/dashboard"
-                className="w-full py-3 bg-enigma-orange hover:bg-enigma-orange/90 text-center text-xs font-semibold rounded text-white transition-colors shadow-lg shadow-enigma-orange/20"
-              >
-                Start 5-Day Elite Trial
+            <div className="bg-[#0d0d12] border border-gray-800 p-10 rounded hover:border-orange-600 transition-all flex flex-col">
+              <h3 className="text-xl font-bold text-white mb-2 uppercase tracking-tighter">Enigma Pro</h3>
+              <div className="text-4xl font-extrabold text-white mb-8">$49<span className="text-xs text-gray-600 font-normal">/mo</span></div>
+              <ul className="space-y-4 text-[10px] uppercase tracking-widest text-gray-500 flex-1 font-bold">
+                <li className="flex items-center text-white"><ChevronRight className="w-3 h-3 text-orange-600 mr-2" /> 20 Daily Intelligence Messages</li>
+                <li className="flex items-center"><ChevronRight className="w-3 h-3 text-orange-600 mr-2" /> Full Cycle Intelligence Panel</li>
+                <li className="flex items-center"><ChevronRight className="w-3 h-3 text-orange-600 mr-2" /> Real-time Whale Alerts (&gt;$1M)</li>
+                <li className="flex items-center"><ChevronRight className="w-3 h-3 text-orange-600 mr-2" /> Advanced Research Tools</li>
+              </ul>
+              <Link href="/dashboard" className="mt-10 w-full py-4 bg-orange-600 text-white text-center font-bold uppercase tracking-[0.2em] text-[10px] rounded hover:bg-orange-500 transition-colors">
+                Start Pro Trial
               </Link>
             </div>
 
             {/* Elite Plan */}
-            <div className="bg-enigma-panel border border-enigma-border p-8 rounded-lg flex flex-col justify-between hover:border-enigma-purple transition-colors">
-              <div>
-                <h3 className="text-lg font-bold text-white mb-2">Enigma Elite</h3>
-                <p className="text-xs text-enigma-text-dim mb-6">Full automation power & unlimited access.</p>
-                <div className="text-3xl font-extrabold text-white mb-6">
-                  $149<span className="text-xs text-enigma-text-dim font-normal">/mo</span>
-                </div>
-                <ul className="space-y-3 text-xs text-enigma-text-dim border-t border-enigma-border pt-6 mb-8">
-                  <li className="flex items-center space-x-2">
-                    <span className="text-enigma-purple">•</span>
-                    <span className="text-white">Unlimited Messages with E</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <span className="text-enigma-purple">•</span>
-                    <span>Full Market Scanner (200+ Coins)</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <span className="text-enigma-purple">•</span>
-                    <span className="text-white">Coinbase Auto-Trading Engine</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <span className="text-enigma-purple">•</span>
-                    <span>Early Signal Access</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <span className="text-enigma-purple">•</span>
-                    <span>Elite Whale alerts (&gt;$500k)</span>
-                  </li>
-                </ul>
+            <div className="bg-[#0d0d12] border-2 border-purple-600 p-10 rounded relative flex flex-col transform scale-105 shadow-2xl shadow-purple-900/20">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-purple-600 rounded text-[9px] text-white font-bold tracking-[0.3em] uppercase">
+                Most Powerful
               </div>
-              <Link
-                href="/dashboard"
-                className="w-full py-3 bg-enigma-purple hover:bg-enigma-purple/90 text-center text-xs font-semibold rounded text-white transition-colors shadow-lg shadow-enigma-purple/20"
-              >
-                Start 5-Day Elite Trial
+              <h3 className="text-xl font-bold text-white mb-2 uppercase tracking-tighter">Enigma Elite</h3>
+              <div className="text-4xl font-extrabold text-white mb-8">$149<span className="text-xs text-gray-600 font-normal">/mo</span></div>
+              <ul className="space-y-4 text-[10px] uppercase tracking-widest text-gray-500 flex-1 font-bold">
+                <li className="flex items-center text-white"><ChevronRight className="w-3 h-3 text-purple-600 mr-2" /> Unlimited E-Brain Messages</li>
+                <li className="flex items-center text-white"><ChevronRight className="w-3 h-3 text-purple-600 mr-2" /> Full Market Scanner (200+ Assets)</li>
+                <li className="flex items-center text-white"><ChevronRight className="w-3 h-3 text-purple-600 mr-2" /> Coinbase Auto-Trading Engine</li>
+                <li className="flex items-center text-white"><ChevronRight className="w-3 h-3 text-purple-600 mr-2" /> Early Signal & Whale Alerts (&gt;$500k)</li>
+              </ul>
+              <Link href="/dashboard" className="mt-10 w-full py-4 bg-purple-600 text-white text-center font-bold uppercase tracking-[0.2em] text-[10px] rounded hover:bg-purple-500 transition-colors shadow-lg">
+                Activate Elite Beta
+              </Link>
+            </div>
+
+            {/* Free Plan */}
+            <div className="bg-[#0d0d12] border border-gray-800 p-10 rounded hover:border-gray-600 transition-all flex flex-col">
+              <h3 className="text-xl font-bold text-white mb-2 uppercase tracking-tighter text-gray-400">Enigma Free</h3>
+              <div className="text-4xl font-extrabold text-gray-400 mb-8">$0<span className="text-xs text-gray-600 font-normal">/mo</span></div>
+              <ul className="space-y-4 text-[10px] uppercase tracking-widest text-gray-700 flex-1 font-bold">
+                <li className="flex items-center"><ChevronRight className="w-3 h-3 text-gray-800 mr-2" /> 2 Daily Intelligence Messages</li>
+                <li className="flex items-center"><ChevronRight className="w-3 h-3 text-gray-800 mr-2" /> Delayed Whale alerts (&gt;$10M)</li>
+                <li className="flex items-center"><ChevronRight className="w-3 h-3 text-gray-800 mr-2" /> Restricted Dashboard Access</li>
+              </ul>
+              <Link href="/dashboard" className="mt-10 w-full py-4 bg-transparent border border-gray-800 text-gray-400 text-center font-bold uppercase tracking-[0.2em] text-[10px] rounded hover:bg-gray-900 transition-colors">
+                Launch Preview
               </Link>
             </div>
           </div>
@@ -706,52 +468,66 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-enigma-border bg-enigma-bg py-12 px-6 text-xs text-enigma-text-dim font-terminal mt-auto">
-        <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center space-x-2">
-            <span className="font-bold text-white">ENIGMA INTELLIGENCE © 2026</span>
-            <span>•</span>
-            <span>CYCLES • WHALES • SENTIMENT • AUTOMATION</span>
+      <footer className="border-t border-gray-900 bg-black py-20 px-6 text-[10px] text-gray-600 font-bold uppercase tracking-[0.3em]">
+        <div className="max-w-[1400px] mx-auto grid md:grid-cols-4 gap-12">
+          <div className="col-span-2">
+            <div className="flex items-center space-x-3 mb-8">
+              <div className="w-6 h-6 rounded bg-gray-800 flex items-center justify-center font-bold text-white text-[10px]">Ξ</div>
+              <span className="text-white tracking-[0.4em]">Enigma Intelligence</span>
+            </div>
+            <p className="max-w-sm leading-loose">
+              Enigma is a non-custodial intelligence platform. We provide blockchain telemetry and AI analysis for educational purposes. All automated trading involves risk.
+            </p>
           </div>
-          <div className="flex items-center space-x-6">
-            <a href="#about" className="hover:text-white transition-colors">MEET E</a>
-            <a href="#features" className="hover:text-white transition-colors">RESOURCES</a>
-            <a href="#pricing" className="hover:text-white transition-colors">SUBSCRIBE</a>
+          <div>
+            <h4 className="text-white mb-6">Resources</h4>
+            <ul className="space-y-4">
+              <li><Link href="/how-it-works" className="hover:text-orange-500 transition-colors">How it Works</Link></li>
+              <li><Link href="/methodology" className="hover:text-orange-500 transition-colors">Methodology</Link></li>
+              <li><a href="#" className="hover:text-orange-500 transition-colors">Privacy Policy</a></li>
+            </ul>
           </div>
+          <div>
+            <h4 className="text-white mb-6">Connect</h4>
+            <ul className="space-y-4">
+              <li><a href="#" className="hover:text-orange-500 transition-colors">Twitter / X</a></li>
+              <li><a href="#" className="hover:text-orange-500 transition-colors">Discord Community</a></li>
+              <li><a href="#" className="hover:text-orange-500 transition-colors">Support Portal</a></li>
+            </ul>
+          </div>
+        </div>
+        <div className="max-w-[1400px] mx-auto border-t border-gray-900 mt-20 pt-8 flex justify-between">
+          <span>© 2026 ENIGMA INTEL SYSTEMS</span>
+          <span>EST. LATENCY: 24MS</span>
         </div>
       </footer>
 
       {/* 7. Live 5-Day Trial Countdown Banner */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#0c0c12] border-t border-enigma-orange/40 p-3.5 z-50 shadow-2xl backdrop-blur-md">
+      <div className="fixed bottom-0 left-0 right-0 bg-[#0c0c12] border-t border-orange-600/40 p-3.5 z-50 shadow-2xl backdrop-blur-md">
         <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-y-3">
-          <div className="flex items-center space-x-3 text-sm">
-            <div className="w-2.5 h-2.5 rounded-full bg-enigma-orange animate-ping"></div>
-            <span className="font-terminal text-white">
-              LIMITED TRIAL POOL ACTIVE:
-            </span>
-            <span className="text-enigma-text-dim text-xs hidden sm:inline">
-              Unlock Elite free for 5 days. Secure your slot now.
+          <div className="flex items-center space-x-4">
+            <div className="w-2 h-2 rounded-full bg-orange-600 animate-ping"></div>
+            <span className="font-mono text-white text-[10px] uppercase tracking-[0.2em] font-bold">
+              Limited Elite Trial Pool Active
             </span>
           </div>
 
-          <div className="flex items-center space-x-4">
-            {/* Countdown Box */}
-            <div className="flex items-center space-x-1 font-terminal text-xs">
-              <span className="bg-enigma-panel border border-enigma-border px-2 py-1 rounded text-white font-bold">{countdown.days}d</span>
-              <span className="text-[#9ca3af]">:</span>
-              <span className="bg-enigma-panel border border-enigma-border px-2 py-1 rounded text-white font-bold">{countdown.hours}h</span>
-              <span className="text-[#9ca3af]">:</span>
-              <span className="bg-enigma-panel border border-enigma-border px-2 py-1 rounded text-[#ff6600] font-bold">{countdown.minutes}m</span>
-              <span className="text-[#9ca3af]">:</span>
-              <span className="bg-enigma-panel border border-enigma-border px-2 py-1 rounded text-[#ff6600] font-bold terminal-cursor">{countdown.seconds}s</span>
-              <span className="text-enigma-text-dim text-[10px] ml-1.5 hidden md:inline">LEFT</span>
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2 font-mono text-xs">
+              <span className="text-gray-600 uppercase font-bold text-[9px]">Expiring:</span>
+              <div className="flex space-x-1">
+                <span className="bg-black border border-gray-800 px-2 py-1 rounded text-white font-bold">{countdown.days}D</span>
+                <span className="bg-black border border-gray-800 px-2 py-1 rounded text-white font-bold">{countdown.hours}H</span>
+                <span className="bg-black border border-gray-800 px-2 py-1 rounded text-orange-600 font-bold">{countdown.minutes}M</span>
+                <span className="bg-black border border-gray-800 px-2 py-1 rounded text-orange-600 font-bold">{countdown.seconds}S</span>
+              </div>
             </div>
 
             <Link
               href="/dashboard"
-              className="px-4 py-1.5 bg-enigma-orange hover:bg-enigma-orange/90 text-white font-terminal text-xs font-bold rounded transition-colors flex items-center space-x-1 shadow-md shadow-enigma-orange/10"
+              className="px-6 py-2 bg-white text-black hover:bg-orange-600 hover:text-white font-bold text-[10px] uppercase tracking-[0.2em] rounded transition-all flex items-center space-x-2 shadow-md shadow-orange-900/10"
             >
-              <span>CLAIM FREE SLOT</span>
+              <span>Secure Slot</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>

@@ -44,7 +44,41 @@ body {
   animation: blink 1s step-end infinite;
 }
 
+/* Marquee animation for ticker */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
 /* Scrollbar styling for Bloomberg dense look */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #1c1c24;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #ff6600;
+}
+
+/* For firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #1c1c24 transparent;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
