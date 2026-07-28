@@ -10,7 +10,18 @@ import * as db from '../services/supabase';
 import { verifyStripeConnection } from '../services/stripe';
 import { OnboardingState, EChatResponse } from '../types';
 
+// Import sub-routers
+import intelRouter from './intel';
+import paperRouter from './paper';
+import executeRouter from './execute';
+
 const router = Router();
+
+// ─── Sub-Routes ─────────────────────────────────────────────────────────────
+
+router.use('/intel', intelRouter);
+router.use('/paper', paperRouter);
+router.use('/execute', executeRouter);
 
 // ─── Health / Status ────────────────────────────────────────────────────────
 

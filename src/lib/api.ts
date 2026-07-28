@@ -94,3 +94,63 @@ export async function getProfile(userId: string) {
   const json = await res.json();
   return json.data;
 }
+
+// --- Paper Trading ---
+
+export async function getPaperAccount(userId: string) {
+  const res = await fetch(`${API_BASE_URL}/paper/account`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId }),
+  });
+  if (!res.ok) throw new Error("Failed to get paper account");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function executePaperTrade(
+  userId: string,
+  side: "buy" | "sell",
+  asset: string,
+  quantity: number,
+  slippage: number = 0.01
+) {
+  const res = await fetch(`${API_BASE_URL}/paper/trade`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_id: userId,
+      side,
+      asset,
+      quantity,
+      slippage_tolerance: slippage,
+    }),
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Failed to execute paper trade");
+  }
+  const json = await res.json();
+  return json.data;
+}
+
+export async function getPaperPortfolio(userId: string) {
+  const res = await fetch(`${API_BASE_URL}/paper/portfolio/${userId}`);
+  if (!res.ok) throw new Error("Failed to fetch paper portfolio");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function getPaperHistory(userId: string, limit: number = 20) {
+  const res = await fetch(`${API_BASE_URL}/paper/history/${userId}?limit=${limit}`);
+  if (!res.ok) throw new Error("Failed to fetch paper history");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function getTradableAssets() {
+  const res = await fetch(`${API_BASE_URL}/paper/assets`);
+  if (!res.ok) throw new Error("Failed to fetch assets");
+  const json = await res.json();
+  return json.data;
+}
