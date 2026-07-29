@@ -154,3 +154,67 @@ export async function getTradableAssets() {
   const json = await res.json();
   return json.data;
 }
+
+// --- Coinbase Advanced Trade (Elite) ---
+
+export async function checkCoinbaseCredentials(userId: string) {
+  const res = await fetch(`${API_BASE_URL}/execute/credentials/${userId}/check`);
+  if (!res.ok) throw new Error("Failed to check credentials");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function saveCoinbaseCredentials(userId: string, apiKey: string, apiSecret: string) {
+  const res = await fetch(`${API_BASE_URL}/execute/credentials`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId, api_key: apiKey, api_secret: apiSecret }),
+  });
+  if (!res.ok) throw new Error("Failed to save credentials");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function getCoinbaseBalances(userId: string) {
+  const res = await fetch(`${API_BASE_URL}/execute/accounts/${userId}`);
+  if (!res.ok) throw new Error("Failed to fetch Coinbase balances");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function executeCoinbaseOrder(
+  userId: string,
+  productId: string,
+  side: "BUY" | "SELL",
+  type: "MARKET" | "LIMIT",
+  size: number,
+  limitPrice?: number,
+  mock: boolean = false
+) {
+  const res = await fetch(`${API_BASE_URL}/execute/order`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_id: userId,
+      product_id: productId,
+      side,
+      type,
+      size,
+      limit_price: limitPrice,
+      mock
+    }),
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Failed to execute order");
+  }
+  const json = await res.json();
+  return json.data;
+}
+
+export async function getCoinbaseOrderStatus(userId: string, orderId: string) {
+  const res = await fetch(`${API_BASE_URL}/execute/order/${userId}/${orderId}`);
+  if (!res.ok) throw new Error("Failed to fetch order status");
+  const json = await res.json();
+  return json.data;
+}

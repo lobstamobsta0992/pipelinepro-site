@@ -32,6 +32,7 @@ import {
   Layers
 } from "lucide-react";
 import { PaperTradingTerminal } from "../../components/PaperTradingTerminal";
+import { CoinbaseTerminal } from "../../components/CoinbaseTerminal";
 
 // Types for whale alerts
 interface WhaleAlert {
@@ -453,7 +454,7 @@ export default function Dashboard() {
                   <Database className={`w-4 h-4 ${activeTab === "scanner" ? "text-enigma-purple" : "text-enigma-muted group-hover:text-white"}`} />
                   <span>Market Scanner</span>
                 </div>
-                <Lock className="w-3 h-3 text-enigma-muted opacity-50" />
+                {profile?.subscription_tier !== "Elite" && <Lock className="w-3 h-3 text-enigma-muted opacity-50" />}
               </button>
 
               <div className="text-[9px] font-terminal text-enigma-muted mt-8 mb-4 px-4 uppercase tracking-[0.2em]">Execution</div>
@@ -469,7 +470,7 @@ export default function Dashboard() {
                   <Zap className={`w-4 h-4 ${activeTab === "auto-trader" ? "text-enigma-orange" : "text-enigma-muted group-hover:text-white"}`} />
                   <span>Auto-Trader</span>
                 </div>
-                <Lock className="w-3 h-3 text-enigma-muted opacity-50" />
+                {profile?.subscription_tier !== "Elite" && <Lock className="w-3 h-3 text-enigma-muted opacity-50" />}
               </button>
 
               <button
@@ -920,11 +921,17 @@ export default function Dashboard() {
           )}
           
           {activeTab === "auto-trader" && (
-             <div className="p-8 flex items-center justify-center h-full">
-                <div className="text-center space-y-4">
-                   <Zap className="w-12 h-12 text-enigma-orange mx-auto opacity-50" />
-                   <div className="text-enigma-text-dim font-terminal uppercase tracking-widest text-xs">Bridge Authorization Required</div>
-                </div>
+             <div className="flex-1 flex flex-col overflow-hidden">
+                <CoinbaseTerminal 
+                  userId={profile?.id || "trial-user"} 
+                  userTier={profile?.subscription_tier || "Elite"} 
+                  onCommentary={(text) => {
+                    setMessages(prev => [
+                      ...prev, 
+                      { sender: "e", text, time: new Date().toTimeString().split(" ")[0] }
+                    ]);
+                  }}
+                />
              </div>
           )}
 
