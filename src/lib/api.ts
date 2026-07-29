@@ -218,3 +218,47 @@ export async function getCoinbaseOrderStatus(userId: string, orderId: string) {
   const json = await res.json();
   return json.data;
 }
+
+// --- Market Scanner ---
+
+export async function getScannerOverview() {
+  const res = await fetch(`${API_BASE_URL}/scanner/overview`);
+  if (!res.ok) throw new Error("Failed to fetch scanner overview");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function getScannerHot() {
+  const res = await fetch(`${API_BASE_URL}/scanner/hot`);
+  if (!res.ok) throw new Error("Failed to fetch hot assets");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function getScannerDead() {
+  const res = await fetch(`${API_BASE_URL}/scanner/dead`);
+  if (!res.ok) throw new Error("Failed to fetch dead assets");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function getScannerTrending() {
+  const res = await fetch(`${API_BASE_URL}/scanner/trending`);
+  if (!res.ok) throw new Error("Failed to fetch trending assets");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function getScannerCoin(coinId: string) {
+  const res = await fetch(`${API_BASE_URL}/scanner/coin/${coinId}`);
+  if (!res.ok) throw new Error("Failed to fetch coin deep-dive");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function searchScanner(query: string) {
+  const res = await fetch(`${API_BASE_URL}/scanner/search?q=${query}`);
+  if (!res.ok) throw new Error("Failed to search scanner");
+  const json = await res.json();
+  return json.data;
+}
