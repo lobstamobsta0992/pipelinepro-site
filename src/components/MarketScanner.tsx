@@ -65,10 +65,10 @@ export function MarketScanner({ userId, userTier, onCommentary }: MarketScannerP
     try {
       setRefreshing(true);
       const [ovData, hotData, deadData, trendingData] = await Promise.all([
-        getScannerOverview(),
-        getScannerHot(),
-        getScannerDead(),
-        getScannerTrending()
+        getScannerOverview(userId),
+        getScannerHot(userId),
+        getScannerDead(userId),
+        getScannerTrending(userId)
       ]);
 
       setOverview(ovData);

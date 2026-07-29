@@ -221,29 +221,33 @@ export async function getCoinbaseOrderStatus(userId: string, orderId: string) {
 
 // --- Market Scanner ---
 
-export async function getScannerOverview() {
-  const res = await fetch(`${API_BASE_URL}/scanner/overview`);
+export async function getScannerOverview(userId?: string) {
+  const url = userId ? `${API_BASE_URL}/scanner/overview?user_id=${userId}` : `${API_BASE_URL}/scanner/overview`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch scanner overview");
   const json = await res.json();
   return json.data;
 }
 
-export async function getScannerHot() {
-  const res = await fetch(`${API_BASE_URL}/scanner/hot`);
+export async function getScannerHot(userId?: string) {
+  const url = userId ? `${API_BASE_URL}/scanner/hot?user_id=${userId}` : `${API_BASE_URL}/scanner/hot`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch hot assets");
   const json = await res.json();
   return json.data;
 }
 
-export async function getScannerDead() {
-  const res = await fetch(`${API_BASE_URL}/scanner/dead`);
+export async function getScannerDead(userId?: string) {
+  const url = userId ? `${API_BASE_URL}/scanner/dead?user_id=${userId}` : `${API_BASE_URL}/scanner/dead`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch dead assets");
   const json = await res.json();
   return json.data;
 }
 
-export async function getScannerTrending() {
-  const res = await fetch(`${API_BASE_URL}/scanner/trending`);
+export async function getScannerTrending(userId?: string) {
+  const url = userId ? `${API_BASE_URL}/scanner/trending?user_id=${userId}` : `${API_BASE_URL}/scanner/trending`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch trending assets");
   const json = await res.json();
   return json.data;
