@@ -14,6 +14,7 @@ dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 import apiRoutes from './routes/api';
 import scannerRoutes from './routes/scanner';
+import dcaRoutes from './routes/dca';
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3001', 10);
@@ -41,6 +42,7 @@ app.use((req, _res, next) => {
 
 app.use('/api', apiRoutes);
 app.use('/scanner', scannerRoutes);
+app.use('/dca', dcaRoutes);
 
 // ─── Initialize Services ────────────────────────────────────────────────────
 
@@ -106,6 +108,11 @@ async function initializeServices() {
   } else {
     console.log('ℹ Claude API not configured. Set ANTHROPIC_API_KEY for AI responses.');
   }
+
+  // Initialize DCA Scheduler (Phase 4)
+  const { startDCAScheduler } = await import('./services/sentimentDCA');
+  startDCAScheduler(300_000); // Check every 5 minutes
+  console.log('✓ DCA Scheduler initialized (5min check)');
 }
 
 // ─── Start Server ───────────────────────────────────────────────────────────
@@ -128,6 +135,7 @@ async function start() {
     console.log(`🏥 Health: http://0.0.0.0:${PORT}/api/health`);
     console.log(`📋 Status: http://0.0.0.0:${PORT}/api/status`);
     console.log(`🔍 Scanner: http://0.0.0.0:${PORT}/scanner/overview`);
+    console.log(`🤖 Sentiment DCA: http://0.0.0.0:${PORT}/dca/sentiment`);
   });
 }
 
