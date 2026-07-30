@@ -33,6 +33,8 @@ import {
 } from "lucide-react";
 import { PaperTradingTerminal } from "../../components/PaperTradingTerminal";
 import { CoinbaseTerminal } from "../../components/CoinbaseTerminal";
+import { MarketScanner } from "../../components/MarketScanner";
+import { AutoTradingDashboard } from "../../components/AutoTradingDashboard";
 
 // Types for whale alerts
 interface WhaleAlert {
@@ -114,6 +116,9 @@ export default function Dashboard() {
 
   // Trading mode state
   const [tradingMode, setTradingMode] = useState<"live" | "paper">("live");
+
+  // Auto-trading sub-tab state
+  const [autoTradingSubTab, setAutoTradingSubTab] = useState<"engine" | "manual">("engine");
 
   // Onboarding user trial state
   const [trialTimeLeft, setTrialTimeLeft] = useState({
@@ -801,38 +806,19 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* TAB 3: MARKET SCANNER (LOCKED) */}
+          {/* TAB 3: MARKET SCANNER */}
           {activeTab === "scanner" && (
-            <div className="p-8 space-y-8 max-w-[1200px] mx-auto relative h-full">
-              {/* Locking Overlay */}
-              <div className="absolute inset-0 bg-[#060608]/60 backdrop-blur-md z-30 flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-16 h-16 rounded-full bg-enigma-purple/20 border border-enigma-purple/40 flex items-center justify-center mb-6 text-enigma-purple shadow-[0_0_30px_rgba(157,78,221,0.2)]">
-                  <Lock className="w-7 h-7" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-4 uppercase tracking-tighter">Elite Market Scanner Locked</h3>
-                <p className="text-sm text-enigma-text-dim max-w-xl mb-8 leading-relaxed font-terminal">
-                  IDENTIFY VOLUME ANOMALIES AND RSI DIVERGENCES ACROSS 200+ ASSETS IN REAL-TIME. ACCESS FULL SECTOR ROTATION DATA AND WHALE INTENT CLASSIFICATION.
-                </p>
-                <div className="flex space-x-4">
-                  <button
-                    onClick={() => setActiveTab("war-room")}
-                    className="px-8 py-3 bg-enigma-panel border border-enigma-border hover:bg-white/5 text-white font-bold text-xs rounded uppercase tracking-widest transition-all"
-                  >
-                    Return
-                  </button>
-                  <Link
-                    href="/#pricing"
-                    className="px-8 py-3 bg-gradient-to-r from-enigma-orange to-enigma-purple hover:scale-105 text-white font-bold text-xs rounded uppercase tracking-widest transition-all shadow-xl shadow-enigma-purple/20"
-                  >
-                    Upgrade Now
-                  </Link>
-                </div>
-              </div>
-
-              {/* Blurred mockup under */}
-              <div className="space-y-6 select-none opacity-20 pointer-events-none filter blur-sm">
-                <div className="bg-enigma-panel border border-enigma-border rounded-lg p-8 h-[600px]"></div>
-              </div>
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <MarketScanner 
+                userId={profile?.id || "trial-user"} 
+                userTier={profile?.subscription_tier || "Elite"} 
+                onCommentary={(text) => {
+                  setMessages(prev => [
+                    ...prev, 
+                    { sender: "e", text, time: new Date().toTimeString().split(" ")[0] }
+                  ]);
+                }}
+              />
             </div>
           )}
 
@@ -922,16 +908,47 @@ export default function Dashboard() {
           
           {activeTab === "auto-trader" && (
              <div className="flex-1 flex flex-col overflow-hidden">
-                <CoinbaseTerminal 
-                  userId={profile?.id || "trial-user"} 
-                  userTier={profile?.subscription_tier || "Elite"} 
-                  onCommentary={(text) => {
-                    setMessages(prev => [
-                      ...prev, 
-                      { sender: "e", text, time: new Date().toTimeString().split(" ")[0] }
-                    ]);
-                  }}
-                />
+             {/* Sub-navigation for Auto-Trader */}
+             <div className="px-6 py-2 bg-[#0a0a0f] border-b border-enigma-border flex items-center gap-4">
+                <button
+                  onClick={() => setAutoTradingSubTab("engine")}
+                  className={`text-[10px] font-bold font-terminal px-3 py-1.5 rounded transition-all ${autoTradingSubTab === 'engine' ? 'bg-enigma-purple/20 text-enigma-purple border border-enigma-purple/30' : 'text-enigma-text-dim hover:text-white'}`}
+                >
+                  STRATEGY ENGINE
+                </button>
+                <button
+                  onClick={() => setAutoTradingSubTab("manual")}
+                  className={`text-[10px] font-bold font-terminal px-3 py-1.5 rounded transition-all ${autoTradingSubTab === 'manual' ? 'bg-enigma-purple/20 text-enigma-purple border border-enigma-purple/30' : 'text-enigma-text-dim hover:text-white'}`}
+                >
+                  MANUAL EXECUTION
+                </button>
+             </div>
+
+             <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
+                {autoTradingSubTab === "engine" ? (
+                  <AutoTradingDashboard
+                    userId={profile?.id || "trial-user"}
+                    userTier={profile?.subscription_tier || "Elite"}
+                    onCommentary={(text) => {
+                      setMessages(prev => [
+                        ...prev,
+                        { sender: "e", text, time: new Date().toTimeString().split(" ")[0] }
+                      ]);
+                    }}
+                  />
+                ) : (
+                  <CoinbaseTerminal
+                    userId={profile?.id || "trial-user"}
+                    userTier={profile?.subscription_tier || "Elite"}
+                    onCommentary={(text) => {
+                      setMessages(prev => [
+                        ...prev,
+                        { sender: "e", text, time: new Date().toTimeString().split(" ")[0] }
+                      ]);
+                    }}
+                  />
+                )}
+             </div>
              </div>
           )}
 

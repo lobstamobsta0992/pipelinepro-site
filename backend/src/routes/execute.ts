@@ -4,6 +4,7 @@
 
 import { Router, Request, Response } from 'express';
 import * as coinbase from '../services/coinbaseExecution';
+import * as sentimentDCA from '../services/sentimentDCA';
 
 const router = Router();
 
@@ -165,6 +166,31 @@ router.post('/dca', async (req: Request, res: Response) => {
     res.json({ success: true, data: order });
   } catch (err) {
     res.status(400).json({ success: false, error: (err as Error).message });
+  }
+});
+
+
+// ─── Sentiment DCA (Phase 4) ───────────────────────────────────────────────
+
+/** GET /execute/executions/:strategyId — Get execution history for a strategy */
+router.get('/executions/:strategyId', async (req: Request, res: Response) => {
+  try {
+    const { strategyId } = req.params;
+    const { limit } = req.query;
+    const executions = await sentimentDCA.getDCAExecutions(strategyId, limit ? parseInt(limit as string) : 20);
+    res.json({ success: true, data: executions });
+  } catch (err) {
+    res.status(500).json({ success: false, error: (err as Error).message });
+  }
+});
+
+/** GET /execute/sentiment — Get current sentiment snapshot for DCA */
+router.get('/sentiment', async (_req: Request, res: Response) => {
+  try {
+    const snapshot = await sentimentDCA.calculateSentiment();
+    res.json({ success: true, data: snapshot });
+  } catch (err) {
+    res.status(500).json({ success: false, error: (err as Error).message });
   }
 });
 
