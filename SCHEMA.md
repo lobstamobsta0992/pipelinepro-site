@@ -1,7 +1,7 @@
 # Enigma Intelligence — Supabase Schema Documentation
 
-> **Version:** 1.0  
-> **Last Updated:** 2026-06-14  
+> **Version:** 1.1
+> **Last Updated:** 2026-07-29
 > **Author:** AI & Backend Engineer (`e_soul`)
 
 ---
@@ -255,20 +255,39 @@ Publicly visible whale transaction alerts from blockchain monitors.
 
 ### 10. `market_data_cache`
 
-Cached market data from CoinGecko and similar APIs.
+Cached market data from CoinGecko and similar APIs. Supports the Market Scanner (Elite tier) and Cycle Intelligence features.
 
 | Column | Type | Default | Description |
 |--------|------|---------|-------------|
 | `id` | `UUID` (PK) | `gen_random_uuid()` | — |
-| `coin_id` | `TEXT` | — | CoinGecko ID: `bitcoin`, `ethereum` |
+| `coin_id` | `TEXT UNIQUE` | — | CoinGecko ID: `bitcoin`, `ethereum` |
 | `symbol` | `TEXT` | — | `btc`, `eth` |
 | `name` | `TEXT` | — | Full name |
 | `current_price` | `NUMERIC` | `NULL` | USD price |
 | `market_cap` | `NUMERIC` | `NULL` | — |
 | `volume_24h` | `NUMERIC` | `NULL` | — |
 | `price_change_24h` | `NUMERIC` | `NULL` | Percentage change |
-| `market_data` | `JSONB` | `{}` | Full raw data |
+| `market_data` | `JSONB` | `{}` | Extended scanner data (see below) |
 | `fetched_at` | `TIMESTAMPTZ` | `now()` | Last fetch time |
+
+**`market_data` JSONB structure (scanner-specific fields):**
+```json
+{
+  "rank": 1,
+  "price_change_1h": 0.5,
+  "price_change_7d": 12.3,
+  "volume_spike_ratio": 2.4,
+  "momentum_score": 78.5,
+  "zone": "hot",
+  "trend_shift": "surging"
+}
+```
+- `zone`: One of `hot` (momentum ≥ 65), `dead` (≤ 35), `watching` (volume spike + movement), `neutral`
+- `momentum_score`: 0-100 composite score (weighted 1h/24h/7d changes + volume + trend alignment)
+- `volume_spike_ratio`: Current volume / average volume across tracked coins (>2.0 = spike)
+- `trend_shift`: Classification: `surging`, `breaking up — reversal`, `rolling over`, `free-falling`, `consolidating`, `volatile — watching for direction`, `stable`
+
+**Migration 00002:** Adds `UNIQUE` constraint on `coin_id` for upsert operations.
 
 **RLS:** Public read access.
 
@@ -432,3 +451,17 @@ WHERE event_object_table = 'users' AND event_object_schema = 'auth';
 ### For Alerts
 - **Whale filters:** Compare `whale_alerts.usd_value` against `tiers.whale_alert_min_usd`
 - **Email alerts:** Trigger via `has_email_alerts` flag for Elite subscribers
+
+### For Market Scanner (Phase 3 — Elite Tier)
+- **API Base:** `GET /scanner/*` (port 3001)
+- **Overview:** `GET /scanner/overview?user_id=<uuid>` — Market-wide summary with E's hot take, zone counts, top movers, volume leaders. Free/Pro get top 10 preview.
+- **Hot Zone:** `GET /scanner/hot?limit=25` — Coins with momentum_score ≥ 65, sorted descending
+- **Dead Zone:** `GET /scanner/dead?limit=25` — Coins with momentum_score ≤ 35, sorted ascending
+- **Trending:** `GET /scanner/trending` — Coins showing significant trend shifts, each with E's commentary
+- **Coin Detail:** `GET /scanner/coin/:id` — Elite-only deep-dive with full commentary
+- **Search:** `GET /scanner/search?q=bitcoin` — Search by name/symbol
+- **Zone Filter:** `GET /scanner/zone/hot` — Filter all coins in a zone (hot/dead/neutral/watching)
+- **Refresh:** `GET /scanner/refresh` — Force-refresh (Elite only, rate-limited)
+- **Tier gating:** All endpoints auto-detect user tier via `x-user-id` header or `user_id` query param. Elite gets full access; Free/Pro get preview with upgrade prompt.
+- **Data freshness:** 60-second polling interval (CoinGecko Pro), cached response TTL = 60s
+- **Coin coverage:** Top 250 by market cap (excluding sub-$10M micro-caps)
