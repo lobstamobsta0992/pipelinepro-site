@@ -13,6 +13,7 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 import apiRoutes from './routes/api';
+import scannerRoutes from './routes/scanner';
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3001', 10);
@@ -39,6 +40,7 @@ app.use((req, _res, next) => {
 // ─── Routes ─────────────────────────────────────────────────────────────────
 
 app.use('/api', apiRoutes);
+app.use('/scanner', scannerRoutes);
 
 // ─── Initialize Services ────────────────────────────────────────────────────
 
@@ -78,6 +80,19 @@ async function initializeServices() {
       } else {
         console.log('ℹ Supabase not configured. Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to .secrets.env.');
       }
+
+      // Initialize Market Scanner (CoinGecko Pro)
+      const coinGeckoKey = getSecret('COINGECKO_API_KEY');
+      if (coinGeckoKey) {
+        process.env.COINGECKO_API_KEY = coinGeckoKey;
+        const { initMarketScanner, startScannerPolling } = await import('./services/marketScanner');
+        initMarketScanner(coinGeckoKey);
+        // Start polling after server is up
+        setImmediate(() => startScannerPolling(60_000));
+        console.log('✓ Market Scanner initialized (CoinGecko Pro)');
+      } else {
+        console.log('ℹ Market Scanner not configured. Add COINGECKO_API_KEY to .secrets.env.');
+      }
     }
   } catch (err) {
     console.warn('⚠ Secrets initialization skipped:', (err as Error).message);
@@ -106,11 +121,13 @@ async function start() {
     console.log(`║  Port:     ${PORT.toString().padEnd(33)}║`);
     console.log(`║  Mode:     ${process.env.NODE_ENV || 'development'.padEnd(33)}║`);
     console.log(`║  Claude:   ${process.env.ANTHROPIC_API_KEY ? '✓ Configured'.padEnd(30) : '○ Not configured'.padEnd(32)}║`);
+    console.log(`║  Scanner:  ${process.env.COINGECKO_API_KEY ? '✓ Active (60s)'.padEnd(28) : '○ Not configured'.padEnd(32)}║`);
     console.log('╚══════════════════════════════════════════════╝');
     console.log('');
     console.log(`📡 API ready at http://0.0.0.0:${PORT}/api`);
     console.log(`🏥 Health: http://0.0.0.0:${PORT}/api/health`);
     console.log(`📋 Status: http://0.0.0.0:${PORT}/api/status`);
+    console.log(`🔍 Scanner: http://0.0.0.0:${PORT}/scanner/overview`);
   });
 }
 

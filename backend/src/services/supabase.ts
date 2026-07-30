@@ -21,7 +21,7 @@ function ensureClient(): SupabaseClient {
   return supabase;
 }
 
-/** Export client for direct access */
+/** Get the initialized Supabase client (for use in other services) */
 export function getSupabase(): SupabaseClient {
   return ensureClient();
 }
