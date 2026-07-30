@@ -34,7 +34,6 @@ import {
 import { PaperTradingTerminal } from "../../components/PaperTradingTerminal";
 import { CoinbaseTerminal } from "../../components/CoinbaseTerminal";
 import { MarketScanner } from "../../components/MarketScanner";
-import { AutoTradingDashboard } from "../../components/AutoTradingDashboard";
 
 // Types for whale alerts
 interface WhaleAlert {
@@ -116,9 +115,6 @@ export default function Dashboard() {
 
   // Trading mode state
   const [tradingMode, setTradingMode] = useState<"live" | "paper">("live");
-
-  // Auto-trading sub-tab state
-  const [autoTradingSubTab, setAutoTradingSubTab] = useState<"engine" | "manual">("engine");
 
   // Onboarding user trial state
   const [trialTimeLeft, setTrialTimeLeft] = useState({
@@ -908,47 +904,16 @@ export default function Dashboard() {
           
           {activeTab === "auto-trader" && (
              <div className="flex-1 flex flex-col overflow-hidden">
-             {/* Sub-navigation for Auto-Trader */}
-             <div className="px-6 py-2 bg-[#0a0a0f] border-b border-enigma-border flex items-center gap-4">
-                <button
-                  onClick={() => setAutoTradingSubTab("engine")}
-                  className={`text-[10px] font-bold font-terminal px-3 py-1.5 rounded transition-all ${autoTradingSubTab === 'engine' ? 'bg-enigma-purple/20 text-enigma-purple border border-enigma-purple/30' : 'text-enigma-text-dim hover:text-white'}`}
-                >
-                  STRATEGY ENGINE
-                </button>
-                <button
-                  onClick={() => setAutoTradingSubTab("manual")}
-                  className={`text-[10px] font-bold font-terminal px-3 py-1.5 rounded transition-all ${autoTradingSubTab === 'manual' ? 'bg-enigma-purple/20 text-enigma-purple border border-enigma-purple/30' : 'text-enigma-text-dim hover:text-white'}`}
-                >
-                  MANUAL EXECUTION
-                </button>
-             </div>
-
-             <div className="flex-1 overflow-y-auto p-6 scrollbar-thin">
-                {autoTradingSubTab === "engine" ? (
-                  <AutoTradingDashboard
-                    userId={profile?.id || "trial-user"}
-                    userTier={profile?.subscription_tier || "Elite"}
-                    onCommentary={(text) => {
-                      setMessages(prev => [
-                        ...prev,
-                        { sender: "e", text, time: new Date().toTimeString().split(" ")[0] }
-                      ]);
-                    }}
-                  />
-                ) : (
-                  <CoinbaseTerminal
-                    userId={profile?.id || "trial-user"}
-                    userTier={profile?.subscription_tier || "Elite"}
-                    onCommentary={(text) => {
-                      setMessages(prev => [
-                        ...prev,
-                        { sender: "e", text, time: new Date().toTimeString().split(" ")[0] }
-                      ]);
-                    }}
-                  />
-                )}
-             </div>
+                <CoinbaseTerminal 
+                  userId={profile?.id || "trial-user"} 
+                  userTier={profile?.subscription_tier || "Elite"} 
+                  onCommentary={(text) => {
+                    setMessages(prev => [
+                      ...prev, 
+                      { sender: "e", text, time: new Date().toTimeString().split(" ")[0] }
+                    ]);
+                  }}
+                />
              </div>
           )}
 
