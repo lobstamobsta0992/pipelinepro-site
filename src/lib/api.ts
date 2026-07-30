@@ -219,6 +219,40 @@ export async function getCoinbaseOrderStatus(userId: string, orderId: string) {
   return json.data;
 }
 
+// --- Auto-Trading & Strategies (Phase 4) ---
+
+export async function getStrategies(userId: string) {
+  const res = await fetch(`${API_BASE_URL}/execute/strategies/${userId}`);
+  if (!res.ok) throw new Error("Failed to fetch strategies");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function saveStrategy(userId: string, name: string, config: any, isActive: boolean = true) {
+  const res = await fetch(`${API_BASE_URL}/execute/strategies`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId, name, config, is_active: isActive }),
+  });
+  if (!res.ok) throw new Error("Failed to save strategy");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function getStrategyExecutions(strategyId: string, limit: number = 20) {
+  const res = await fetch(`${API_BASE_URL}/execute/executions/${strategyId}?limit=${limit}`);
+  if (!res.ok) throw new Error("Failed to fetch execution history");
+  const json = await res.json();
+  return json.data;
+}
+
+export async function getSentimentSnapshot() {
+  const res = await fetch(`${API_BASE_URL}/execute/sentiment`);
+  if (!res.ok) throw new Error("Failed to fetch sentiment snapshot");
+  const json = await res.json();
+  return json.data;
+}
+
 // --- Market Scanner ---
 
 export async function getScannerOverview(userId?: string) {
